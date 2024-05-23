@@ -1,9 +1,9 @@
 # MoSAIC-P38
 MoSAIC: Modular system for Acceleration Integration MoSAIC
 
-# Copyright
+
 ****************************
-*** Copyright Notice ***
+# Copyright Notice
 
 P38 heterogeneous multi-tiled system with support for message queues (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
 through Lawrence Berkeley National Laboratory (subject to receipt of
