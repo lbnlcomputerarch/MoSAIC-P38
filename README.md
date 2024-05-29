@@ -12,6 +12,7 @@ The Modular system for Acceleration Integration (`MoSAIC`) is a multi-tiled arch
 For Icarus Verilog 
 - i-verilog (at least version 11)
 - vpp
+- RV32 Toolchain for systems that involve the PICORV32 processor. Follow: https://github.com/YosysHQ/picorv32
 
 ## Repo Structure
 
