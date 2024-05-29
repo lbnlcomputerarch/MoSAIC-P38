@@ -1,0 +1,84 @@
+# *************************************************************************
+# 
+# *** Copyright Notice ***
+#
+# P38 heterogeneous multi-tiled system with support for message queues 
+# (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
+# through Lawrence Berkeley National Laboratory (subject to receipt of
+# any required approvals from the U.S. Dept. of Energy). All rights reserved.
+# 
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+#
+# NOTICE.  This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights.  As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative 
+# works, and perform publicly and display publicly, and to permit others 
+# to do so.
+#
+# *************************************************************************
+
+List of testcases:
+
+ICARUS
+
+- mosaic_2x2.pl: PASS
+The simplest testcase with 4 tiles: pico, spad, loop.
+Runs the firmware located in the directory <>/src/Tile.HDL/picorv32_tile/firmware
+A checkers verifies that data is written in the scratchpad and the 
+picorv local memory. 
+
+-mosaic_2x2_tile_mem_mgr.pl: PASS/PASS
+Adds the tile_mem_mgr module which is the interfaces 
+with DRAM.
+Since it runs with ICARUS uses a simple always block to 
+respond with random data when there is a DRAM access.
+The first checker should pass (pico-scratchpad)
+The second checker fails because we don't have a dram model.
+
+-mosaic_4x4_tile_mem_mgr.pl: PASS
+Example of a larger mosaic with only PICORV32 tiles.
+Shows how to add firmware that is in a diferent location.
+The check_pkt_cache should pass
+because it is only interacting with the cache
+and does not require a real DDR4 model.
+
+-mosaic_2x2_long_pkt.pl: FAILS
+Simulation does not advance after certain point.
+It blocks. FIXME.
+
+----------------------------------------------------------
+VIVADO
+
+Similar to previous testcases, but for vivado
+-mosaic_2x2_vivado.pl : GOOD
+-mosaic_2x2_tile_mem_mgr_vivado.pl : GOOD
+
+-mosaic_4x4_vivado.pl
+Asynchronous triangular solver
+
+-mosaic_2x2_ddr4_8cache_vivado.pl 
+Shows how to modify the cache size.
+
+-mosaic_2x2_ddr4_pkt_vivado.pl 
+It is a very fast test, the PICOs don't do anything
+It only injects packets that go to the tile 
+memory manager
+
+-mosaic_2x2_u250.pl      
+Shows how to setup the development board.
+
+-mosaic_cache.pl
+Shows how to generate MoSAIC where the
+PICORV tile has separate DATA and INSTRUCTION memory.
+The instruction memory is a cache that gets
+data from DRAM.
+
+-mosaic_fp.pl
+Adds Mario's Floating Point units.
+
+
+

@@ -1,0 +1,59 @@
+
+start.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+000cc000 <_pvstart>:
+   cc000:	000ccf37          	lui	t5,0xcc
+   cc004:	014f0f13          	addi	t5,t5,20 # cc014 <_pvstart+0x14>
+   cc008:	000f00e7          	jalr	t5
+   cc00c:	00000013          	nop
+   cc010:	00000013          	nop
+   cc014:	00000013          	nop
+   cc018:	00000013          	nop
+   cc01c:	00000093          	li	ra,0
+   cc020:	00000113          	li	sp,0
+   cc024:	00000193          	li	gp,0
+   cc028:	00000213          	li	tp,0
+   cc02c:	00000293          	li	t0,0
+   cc030:	00000313          	li	t1,0
+   cc034:	00000393          	li	t2,0
+   cc038:	00000413          	li	s0,0
+   cc03c:	00000493          	li	s1,0
+   cc040:	00000513          	li	a0,0
+   cc044:	00000593          	li	a1,0
+   cc048:	00000613          	li	a2,0
+   cc04c:	00000693          	li	a3,0
+   cc050:	00000713          	li	a4,0
+   cc054:	00000793          	li	a5,0
+   cc058:	00000813          	li	a6,0
+   cc05c:	00000893          	li	a7,0
+   cc060:	00000913          	li	s2,0
+   cc064:	00000993          	li	s3,0
+   cc068:	00000a13          	li	s4,0
+   cc06c:	00000a93          	li	s5,0
+   cc070:	00000b13          	li	s6,0
+   cc074:	00000b93          	li	s7,0
+   cc078:	00000c13          	li	s8,0
+   cc07c:	00000c93          	li	s9,0
+   cc080:	00000d13          	li	s10,0
+   cc084:	00000d93          	li	s11,0
+   cc088:	00000e13          	li	t3,0
+   cc08c:	00000e93          	li	t4,0
+   cc090:	00000f17          	auipc	t5,0x0
+   cc094:	0b2f0f13          	addi	t5,t5,178 # cc142 <programName>
+   cc098:	00000f97          	auipc	t6,0x0
+   cc09c:	0a8f8f93          	addi	t6,t6,168 # cc140 <tileId>
+   cc0a0:	000d0137          	lui	sp,0xd0
+   cc0a4:	ffc10113          	addi	sp,sp,-4 # cfffc <_ftext+0x3dfc>
+   cc0a8:	ff010113          	addi	sp,sp,-16
+   cc0ac:	00012023          	sw	zero,0(sp)
+   cc0b0:	fe012e23          	sw	zero,-4(sp)
+   cc0b4:	fe012c23          	sw	zero,-8(sp)
+   cc0b8:	fe012a23          	sw	zero,-12(sp)
+   cc0bc:	01e12223          	sw	t5,4(sp)
+   cc0c0:	01f12423          	sw	t6,8(sp)
+   cc0c4:	00000f13          	li	t5,0
+   cc0c8:	00000f93          	li	t6,0
+   cc0cc:	1340006f          	j	cc200 <_ftext>

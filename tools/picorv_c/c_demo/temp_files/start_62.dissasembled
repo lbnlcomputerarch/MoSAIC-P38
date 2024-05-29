@@ -1,0 +1,59 @@
+
+start.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+000f8000 <_pvstart>:
+   f8000:	000f8f37          	lui	t5,0xf8
+   f8004:	014f0f13          	addi	t5,t5,20 # f8014 <_pvstart+0x14>
+   f8008:	000f00e7          	jalr	t5
+   f800c:	00000013          	nop
+   f8010:	00000013          	nop
+   f8014:	00000013          	nop
+   f8018:	00000013          	nop
+   f801c:	00000093          	li	ra,0
+   f8020:	00000113          	li	sp,0
+   f8024:	00000193          	li	gp,0
+   f8028:	00000213          	li	tp,0
+   f802c:	00000293          	li	t0,0
+   f8030:	00000313          	li	t1,0
+   f8034:	00000393          	li	t2,0
+   f8038:	00000413          	li	s0,0
+   f803c:	00000493          	li	s1,0
+   f8040:	00000513          	li	a0,0
+   f8044:	00000593          	li	a1,0
+   f8048:	00000613          	li	a2,0
+   f804c:	00000693          	li	a3,0
+   f8050:	00000713          	li	a4,0
+   f8054:	00000793          	li	a5,0
+   f8058:	00000813          	li	a6,0
+   f805c:	00000893          	li	a7,0
+   f8060:	00000913          	li	s2,0
+   f8064:	00000993          	li	s3,0
+   f8068:	00000a13          	li	s4,0
+   f806c:	00000a93          	li	s5,0
+   f8070:	00000b13          	li	s6,0
+   f8074:	00000b93          	li	s7,0
+   f8078:	00000c13          	li	s8,0
+   f807c:	00000c93          	li	s9,0
+   f8080:	00000d13          	li	s10,0
+   f8084:	00000d93          	li	s11,0
+   f8088:	00000e13          	li	t3,0
+   f808c:	00000e93          	li	t4,0
+   f8090:	00000f17          	auipc	t5,0x0
+   f8094:	0b2f0f13          	addi	t5,t5,178 # f8142 <programName>
+   f8098:	00000f97          	auipc	t6,0x0
+   f809c:	0a8f8f93          	addi	t6,t6,168 # f8140 <tileId>
+   f80a0:	000fc137          	lui	sp,0xfc
+   f80a4:	ffc10113          	addi	sp,sp,-4 # fbffc <_ftext+0x3dfc>
+   f80a8:	ff010113          	addi	sp,sp,-16
+   f80ac:	00012023          	sw	zero,0(sp)
+   f80b0:	fe012e23          	sw	zero,-4(sp)
+   f80b4:	fe012c23          	sw	zero,-8(sp)
+   f80b8:	fe012a23          	sw	zero,-12(sp)
+   f80bc:	01e12223          	sw	t5,4(sp)
+   f80c0:	01f12423          	sw	t6,8(sp)
+   f80c4:	00000f13          	li	t5,0
+   f80c8:	00000f93          	li	t6,0
+   f80cc:	1340006f          	j	f8200 <_ftext>

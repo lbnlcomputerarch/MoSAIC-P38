@@ -1,0 +1,64 @@
+# *************************************************************************
+# 
+# *** Copyright Notice ***
+#
+# P38 heterogeneous multi-tiled system with support for message queues 
+# (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
+# through Lawrence Berkeley National Laboratory (subject to receipt of
+# any required approvals from the U.S. Dept. of Energy). All rights reserved.
+# 
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+#
+# NOTICE.  This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights.  As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative 
+# works, and perform publicly and display publicly, and to permit others 
+# to do so.
+#
+# *************************************************************************
+##############################################
+# Author      : LPGG 
+# Date        : 12-17-2020
+# Description : List of files for verilog  
+#               simulation
+#############################################
+../src/Tile.HDL/4x1_local.sv
+../src/Tile.HDL/tile_noc.sv
+../src/Dispatcher.HDL/Dispatcher.sv
+../src/Gatherer.HDL/Gatherer.sv
+../src/S_PROTOCOL_ADAPTERs.HDL/S_PROTOCOL_ADAPTER_INGRESS.sv
+../src/S_PROTOCOL_ADAPTERs.HDL/S_PROTOCOL_ADAPTER_EGRESS.v
+../src/S_CONTROLLERs.HDL/S_CONTROLLER_USS.sv
+../src/S_CONTROLLERs.HDL/axi_ux_addr.sv
+../src/S_CONTROLLERs.HDL/axi_ux_resp.sv
+../src/SOP.HDL/SOP.v
+../src/Common.HDL/Register.v
+../src/Common.HDL/DPRAM.sv
+../src/S_RESETTER.HDL/S_RESETTER_control.v
+../src/S_RESETTER.HDL/S_RESETTER_line.v
+../src/Tile.HDL/fifo_generator_0.sv
+../src/Tile.HDL/RV_AXIInD.v
+../src/Tile.HDL/axi_control.sv
+../src/Tile.HDL/TileRegBlock.v
+../src/Tile.HDL/noc_decoder.sv
+../src/Tile.HDL/noc_buffer_out.sv
+../src/Tile.HDL/noc_buffer_in.sv
+../src/Tile.HDL/picorv32_tile/noc_out_arbiter.sv
+../src/Tile.HDL/picorv32_tile/qISAExtension.sv
+../src/Tile.HDL/picorv32_tile/qISAExtension_pcpi.sv
+../src/Tile.HDL/picorv32_tile/mem_spy.sv
+../src/Tile.HDL/picorv32_tile/picorv32.v
+../src/Tile.HDL/picorv32_tile/acc_picorv32.sv
+../src/Tile.HDL/picorv32_tile/Tile_picorv32.sv
+../src/Tile.HDL/scratchpad_tile/acc_scratchpad.sv
+../src/Tile.HDL/scratchpad_tile/Tile_scratchpad.sv
+../src/Tile.HDL/loop_tile/acc_loop.sv
+../src/Tile.HDL/loop_tile/Tile_loop.sv
+../src/mosaic.sv
+../src/Testbench/tb_mosaic.sv
+../src/Testbench/TB_System_Stim.v
+
