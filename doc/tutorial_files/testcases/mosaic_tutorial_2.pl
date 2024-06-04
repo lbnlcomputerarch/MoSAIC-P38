@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # *************************************************************************
 # 
 # *** Copyright Notice ***
@@ -21,7 +22,6 @@
 #
 # *************************************************************************
 
-#!/usr/bin/perl
 
 ###########################################
 #- Do not modify
@@ -45,7 +45,7 @@ $param{'c'} = 2;
 @tile_array = (['pico', 'spad'],
                ['loop', 'pico']);
 
-$param{'firmware_path'} = "/home/lg4er/workspace/github_may11_2023/P38_Mosaic_large/mosaic_4k/tutorial_files/c_step1";
+$param{'firmware_path'} = <set_me>;
 
 @pico_program  = ('send_msg32_0.hex', 'test_tile_nop.hex', 
                                   '', 'send_msg32_9.hex');
