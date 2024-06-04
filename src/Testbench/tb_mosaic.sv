@@ -50,7 +50,7 @@ localparam AXI_TILES = `AXI_TILES;
 initial begin
    if ($test$plusargs("vcd")) begin
       $dumpfile("tb_mosaic.vcd");
-      $dumpvars(0, tb_mosaic);
+      $dumpvars(6, tb_mosaic);
    end
 end
 

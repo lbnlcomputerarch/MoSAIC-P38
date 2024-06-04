@@ -20,7 +20,6 @@
 # to do so.
 #
 # *************************************************************************
-
 #!/usr/bin/perl
 
 package gen_hex;
@@ -73,10 +72,7 @@ sub gen_code{
                my $addr_hex = sprintf("%08x", ($id * $addr_range)/4);
                my @addr_hex_a = split('',$addr_hex);
                $addr_hex = join('',@addr_hex_a[0..4]);
-               `sed -i s\/\@$addr_hex\/\@00000\/ $param{'c_code'}32_$id.hex`;
-               get_inst_data_mem("$param{'c_code'}32_$id.hex");
-               #`mv $param{'c_code'}32_$id.hex ./$temp_dir/$param{'c_code'}32_$id.hex`;
-               `mv $param{'c_code'}32_$id.hex $param{'c_code'}_$id.hex`;
+               `sed -i s\/\@$addr_hex\/\@00000\/ $param{'c_code'}32_$id.hex`
             }
          }
       }
@@ -85,45 +81,6 @@ sub gen_code{
    #- Cleaning 
    print "INFO: Cleaning up\n";
    clean($param_p,1);
-}
-
-sub get_inst_data_mem{
-   my $file = $_[0];
-   my $file1 = $file;
-   $file1 =~ s/\.hex//;
-   $file1 =~ s/32//;
-   my $grep_r= `grep \@00000800 $file -n`;
-   my @grep_r_a = split(':',$grep_r);
-   my $n = $grep_r_a[0];
-   $n=$n-1;
-   my $file2 = $file1."_data.hex";
-   `head -n $n $file > $file2`;
-   $n=$n+1;
-   $file2 = $file1."_temp_inst.hex";
-   `tail -n +$n $file > $file2`;
-
-
-   open(my $FH, '<', $file2) or die "Couldn't open $file2 $!\n";
-
-   my $file3 = $file1."_inst.hex";
-   open(my $FH1, '>', $file3) or die "Couldn't open $file3 $!\n";
-
-   while (<$FH>){
-      my $line = $_;
-      if ($line =~ /\@/){
-         chomp($line);
-         $line =~ s/\@//;
-         $line = hex($line);
-         $line = $line - 2048;
-         my $hex = sprintf("%08X", $line);
-         print $FH1 "\@$hex\n";
-     }else{
-         print $FH1 $line;
-      }
-   }
-   close($FH);
-   close($FH1);
-   `rm $file2`;
 }
 
 sub check_params{
@@ -197,8 +154,7 @@ sub clean{
       `rm $param{'c_code'}.hex`;
    }
 }
-# 512 - 1024 - 2048 - 4096 - 8192 - 16384
-# 128 - 256  -  512 - 1024 - 2048 -  4096
+
 
 sub gen_mem_map{
    my %param = %{$_[0]};
@@ -208,9 +164,8 @@ sub gen_mem_map{
    open (my $FH, '>', $file_name) or die "Couldn't open $file_name $!\n";
    print $FH "MEMORY\n";
    print $FH "{\n";
-   print $FH "\tBOOT_LOADER (x)   : ORIGIN = 0x0000, LENGTH = 0x0200\n";
-   print $FH "\tLOCAL_DATA  (rwx) : ORIGIN = 0x0200, LENGTH = 0x01E00\n";
-   print $FH "\tLOCAL_INST  (xr)  : ORIGIN = 0x2000, LENGTH = 0x02000\n";
+   my $addr_hex = sprintf("0x%X", $tile_id * $addr_range + 512);
+   print $FH "\tLOCAL (xrw)  : ORIGIN = $addr_hex, LENGTH = 0x004000\n";
    print $FH "}\n";
    close ($FH);
    #- keep it
@@ -238,11 +193,13 @@ sub gen_startLD{
    my $addr = $tile_id * $addr_range;
    my $addr_hex = sprintf("0x%x", $addr);
    print $FH "SECTIONS {\n";
-   print $FH ". = 0x0;\n";
+   print $FH ". = $addr_hex;\n";
    print $FH ".text : { *(.text) }\n";
-   print $FH ". = 0x140;\n";
+   $addr_hex = sprintf("0x%x", $addr+320);
+   print $FH ". = $addr_hex;\n";
    print $FH ".data : { *(.data) }\n";
-   print $FH "_ftext = 0x2000;\n";
+   $addr_hex = sprintf("0x%x", $addr+512);
+   print $FH "_ftext = $addr_hex;\n";
    print $FH "}\n";
    close($FH);
    #- keep it
@@ -264,8 +221,10 @@ sub gen_startS{
    print $FH ".global _ftext\n";
    print $FH ".global _pvstart\n";
    print $FH "_pvstart:\n";
-   print $FH "lui x30, %hi(0x14)\n";
-   print $FH "addi x30, x30, %lo(0x14)\n";
+   my $addr = $tile_id * $addr_range;
+   my $addr_hex = sprintf("0x%x", $addr + 20);
+   print $FH "lui x30, %hi($addr_hex)\n";
+   print $FH "addi x30, x30, %lo($addr_hex)\n";
    print $FH "jalr x30\n";
    print $FH "nop\n";
    print $FH "nop\n";
@@ -276,10 +235,20 @@ sub gen_startS{
    }
    print $FH "la x30, programName\n";
    print $FH "la x31, tileId\n";
+   my $addr_h = (($tile_id +1)*$addr_range)-4; #FIXME
+   #my $addr1 = (($addr_h-$addr)/2)+$addr;
+   #print "$tile_id, $addr, $addr_h, $addr1\n";
+   #$addr_hex = sprintf("0x%x", $addr1);
+   #print $FH "lui x30, %hi($addr_hex)\n";
+   #print $FH "addi x30, x30, %lo($addr_hex)\n";
+   #print $FH "add x29,x29,x30\n";
+   #print $FH "add x28,x28,x30\n";
+   #print $FH "addi x30, zero, 0\n";
+   #print $FH "addi x31, zero, 0\n"; 
    #- Set stack pointer
-   #$addr_hex = sprintf("0x%x", $addr_h);
-   print $FH "lui sp, %hi(0x1dfc)\n";
-   print $FH "addi sp, sp, %lo(0x1dfc)\n";
+   $addr_hex = sprintf("0x%x", $addr_h);
+   print $FH "lui sp, %hi($addr_hex)\n";
+   print $FH "addi sp, sp, %lo($addr_hex)\n";
    #- push zeros on the stack for argc and argv
    #- (stack is aligned to 16 bytes in riscv calling convention)
    print $FH "addi sp,sp,-16\n";
@@ -289,6 +258,7 @@ sub gen_startS{
    print $FH "sw zero,-12(sp)\n";
    print $FH "sw x30,4(sp)\n";
    print $FH "sw x31,8(sp)\n";
+   #print $FH "addi x28, zero, 0\n";
    print $FH "addi x30, zero, 0\n";
    print $FH "addi x31, zero, 0\n";
    #- jump to libc init

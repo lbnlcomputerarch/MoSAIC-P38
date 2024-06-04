@@ -1,4 +1,4 @@
-/* ************************************************************************
+/*************************************************************************
 // 
 // *** Copyright Notice ***
 //
@@ -42,12 +42,6 @@ OUTPUT_FORMAT("elf32-littleriscv", "elf32-littleriscv",
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
-/*
- * Two new section
- * INSTRUCTION
- * DATA
- */
-
 SECTIONS
 {
   .text           :
@@ -60,7 +54,7 @@ SECTIONS
     *(.stub .text.* .gnu.linkonce.t.*)
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
-  } > LOCAL_INST
+  } > LOCAL
   .init           :
   {
     KEEP (*(SORT_NONE(.init)))
@@ -74,7 +68,7 @@ SECTIONS
   PROVIDE (__etext = .);
   PROVIDE (_etext = .);
   PROVIDE (etext = .);
-  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) } > LOCAL_DATA
+  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) } > LOCAL
   .rodata1        : { *(.rodata1) }
   .sdata2         :
   {
@@ -95,7 +89,7 @@ SECTIONS
   /*. = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE));*/
   . = DATA_SEGMENT_ALIGN (0x100, 0x1000);
   /* Exception handling  */
-  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) *(.eh_frame.*) } > LOCAL_DATA
+  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) *(.eh_frame.*) } > LOCAL
   .gnu_extab      : ONLY_IF_RW { *(.gnu_extab) }
   .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }
   .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }
@@ -107,21 +101,21 @@ SECTIONS
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-  } > LOCAL_DATA
+  } > LOCAL
   .init_array     :
   {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
     KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
     PROVIDE_HIDDEN (__init_array_end = .);
-  } > LOCAL_DATA
+  } > LOCAL
   .fini_array     :
   {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
     KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
     PROVIDE_HIDDEN (__fini_array_end = .);
-  } > LOCAL_DATA
+  } > LOCAL
   .ctors          :
   {
     /* gcc uses crtbegin.o to find the start of
@@ -159,7 +153,7 @@ SECTIONS
   {
     *(.data .data.* .gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
-  } > LOCAL_DATA
+  } > LOCAL
   .got            : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) }
   /* We want the small data sections together, so single-instruction offsets
      can access them all, and initialized data all before uninitialized, so
@@ -169,7 +163,7 @@ SECTIONS
     __global_pointer$ = . + 0x200;
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
-  } > LOCAL_DATA
+  } > LOCAL
   _edata = .; PROVIDE (edata = .);
   . = .;
   __bss_start = .;
@@ -190,7 +184,7 @@ SECTIONS
       FIXME: Why do we need it? When there is no .bss section, we don't
       pad the .data section.  */
    . = ALIGN(. != 0 ? 32 / 8 : 1);
-  } > LOCAL_DATA
+  } > LOCAL
   . = ALIGN(32 / 8);
   . = SEGMENT_START("ldata-segment", .);
   . = ALIGN(32 / 8);

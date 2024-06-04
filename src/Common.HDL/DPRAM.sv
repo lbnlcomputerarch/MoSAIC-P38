@@ -61,6 +61,8 @@ reg  [DATA_W-1:0]  douta, doutb;
 reg  [DATA_W-1:0]  doutb_i1, doutb_i2;
 
 `ifdef ASIC_SYNTH
+   //- TBD: Add SRAM macro
+`else
 
 reg  [DATA_W-1:0]  mem [(MAX_ADDRESS)-1:0];
 
@@ -99,8 +101,6 @@ always @(posedge clkb) begin
     doutb       <= mem[addrb];
 end
 
-`else
-   //- TBD: Add SRAM macro
 `endif
 
 

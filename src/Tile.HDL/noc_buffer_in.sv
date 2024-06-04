@@ -153,7 +153,7 @@ xpm_fifo_async# (
    .FIFO_WRITE_DEPTH     ( FIFO_WRITE_DEPTH),
    .WRITE_DATA_WIDTH     ( DATA_W),
    .WR_DATA_COUNT_WIDTH  ( ADDR_W),
-   .PROG_FULL_THRESH     ( PROG_FULL_THRESH),
+   //.PROG_FULL_THRESH     ( PROG_FULL_THRESH),
    .USE_ADV_FEATURES     ( "070F"),
    .READ_MODE            ( "std"),
    .FIFO_READ_LATENCY    ( FIFO_READ_LATENCY),
