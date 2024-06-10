@@ -104,7 +104,7 @@ Use the `tile_template.sv` in the doc directory to instantiate your accelerator 
    $param{'vivado_ip_dram'}  = 0;   #- Instantiate the Xilinx memory controller in the testbenc 
 ```
 ## Documentation
-See [Tutorial](https://github.com/PatriGonzalez/P38_Mosaic/tree/mosaic_april2023/mosaic_4k/doc) for more documentation.
+See [Tutorial](https://github.com/lbnlcomputerarch/MoSAIC-P38/tree/main/doc) for more documentation.
 
 ## Open Issues
 - Angelos packet file.
