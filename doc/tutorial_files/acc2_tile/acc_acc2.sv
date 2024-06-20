@@ -30,8 +30,9 @@
 `timescale 1 ps/ 1 ps
 
 module acc_acc2#(
-   parameter OFFSET_SZ      = 12,
-   parameter XY_SZ          =  4
+   parameter OFFSET_SZ         = 12,
+   parameter XY_SZ             =  4,
+   parameter NOC_BUFFER_ADDR_W =  8
 )(
   //---Clock and Reset---//
    input  logic       clk_ctrl,

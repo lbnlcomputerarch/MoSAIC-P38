@@ -33,9 +33,12 @@
 `timescale 1 ps/ 1 ps
 
 module Tile_acc2#(
-   parameter BW  = 32,
-   parameter BWB = BW/8,
-   parameter AXI_ADDR = 8
+   parameter BW                = 32,
+   parameter BWB               = BW/8,
+   parameter AXI_ADDR          =  8,
+   parameter OFFSET_SZ         = 12,
+   parameter XY_SZ             =  3,
+   parameter NOC_BUFFER_ADDR_W =  8
 )(
    input  logic clk_control,
    input  logic clk_line,

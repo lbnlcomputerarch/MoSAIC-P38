@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # *************************************************************************
 # 
 # *** Copyright Notice ***
@@ -20,7 +21,6 @@
 # to do so.
 #
 # *************************************************************************
-#!/usr/bin/perl
 
 use lib "$ENV{PWD}";
 use lib "$ENV{PWD}/../picorv_c/c_fp_acc";
@@ -58,20 +58,7 @@ $path = `pwd`;
 chomp($path);
 $fw_path = "$path/../picorv_c/c_fp_acc";
 $param{'firmware_path'} = $fw_path;  
-#$c_file = 'pico_spad_fp';
-#$c_file = 'pico_add';
-#$c_file = 'pico_add1';
-$c_file = 'pico_add4';
-
-#- 2x2 Tile array
-#$param{'r'} = 2;
-#$param{'c'} = 3;
-#@tile_array = (['pico',    'spad',  'fp_div'],
-#               ['fp_mul', 'fp_add', 'fp_sqr']);
-               #00 08 16
-               #01 09 17
-#@pico_program  = ("${c_file}32_0.hex", '', '', '', 
-#                  '', '', '', '');
+$c_file = 'pico_add5';
 
 $param{'r'} = 8;
 $param{'c'} = 8;
@@ -82,18 +69,6 @@ $param{'c_file'} = $c_file;
 @tile_array = @{$ta};
 @pico_program = @{$pp};
 
-#@tile_array = ();
-#@pico_program = ();
-#for ($i=0; $i<$param{'r'}; $i=$i+1){
-#   @row = ();
-#   for ($j=0; $j<$param{'c'}; $j=$j+1){
-#      $id = $j*8 + $i;
-#      push(@row,   'pico');
-#      push(@pico_program, "${c_file}32_$id.hex");
-#   }
-#   push(@tile_array,[@row]);
-#}
-
 $tile_array[0][1] = 'spad';   $pico_program[1]  = 'nop.hex'; # spad
 $tile_array[1][1] = 'fp_mul'; $pico_program[$param{'c'}+1]  = '';        # mult
 $tile_array[2][1] = 'fp_add'; $pico_program[2*$param{'c'}+1] = '';        # add
@@ -101,27 +76,6 @@ $tile_array[3][1] = 'fp_div'; $pico_program[3*$param{'c'}+1] = '';        # div
 $tile_array[4][1] = 'fp_sqr'; $pico_program[4*$param{'c'}+1] = '';        # sqrt
 $tile_array[2][2] = 'spad';   $pico_program[2*$param{'c'}+2] = 'nop.hex'; # spad
 print_tile_array(\%param, \@tile_array, \@pico_program);
-
-#For debugging
-#foreach $item (@tile_array){
-#   @row = @{$item};
-#   foreach $item1 (@row){
-#      print "$item1, ";
-#   } 
-#   print "\n";
-#}
-#print "\n";
-
-#For debugging
-#$id=0;
-#for ($i=0; $i<$param{'r'}; $i=$i+1){
-#   for ($j=0; $j<$param{'c'}; $j=$j+1){
-#      print "$pico_program[$id], ";
-#      $id = $id + 1;
-#   }
-#   print "\n";
-#}
-#print "\n";
 
 #- Simulation Time
 $param{'sim_loop'}     = 1000;
@@ -133,8 +87,8 @@ $param{'noc_buffer_addr_w'} = 11;
 
 #- Running with Icarus
 $param{'vivado'}         = 1;  #- Generate files for Vivado
-$param{'vivado_project'} = 0;  #- Create a new project (batch mode)
-$param{'run_sim'}        = 0;  #- Run the simulation (batch mode)
+$param{'vivado_project'} = 1;  #- Create a new project (batch mode)
+$param{'run_sim'}        = 1;  #- Run the simulation (batch mode)
 $param{'board'}          = 'u250';
 
 #- generate hex files

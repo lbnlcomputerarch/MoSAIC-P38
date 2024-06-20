@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 # *************************************************************************
 # 
 # *** Copyright Notice ***
@@ -30,7 +29,9 @@
 ###########################################
 
 use lib "$ENV{PWD}";
+use lib "$ENV{PWD}/../picorv_c/c_fft_acc";
 use gen_mosaic;
+use gen_hex;
 use POSIX;
 
 #- Set hash for parameters
@@ -54,16 +55,19 @@ $param{'new_tile'} = \%new_tile;
 ###########################################
 
 #- 2x2 Tile array
+$path = "$ENV{PWD}";
+$fw_path = "$path/../picorv_c/c_fft_acc";
 $param{'r'} = 2;
 $param{'c'} = 2;
+$c_file = "send_msg"; 
 
 @tile_array = (['pico', 'loop'],
                ['loop', 'acc1']);
 
-$param{'firmware_path'} = "$ENV{PWD}/../c_fft_acc";
+$param{'firmware_path'} = $fw_path;
 
-@pico_program  = ('send_msg32_0.hex', '',
-                                  '', '');
+@pico_program  = ("${c_file}32_0.hex", '',
+                                   '', '');
 
 #- Simulation Time
 $param{'sim_loop'} = 1000;
@@ -71,11 +75,23 @@ $param{'sim_loop'} = 1000;
 #- Simulation Time
 $param{'run_sim'} = 1;
 
-# #- Running with Vivado
+#- Running with Vivado
 $param{'vivado'}         = 1;
 $param{'vivado_project'} = 1;
 $param{'board'}          = 'u250';  #- u250 vs u280
 $param{'run_sim'}        = 0;
+
+#- Generate hex code
+chdir $fw_path or die "$!. $fw_path\n";
+%param_h;
+$param_h{'c_code'} = $c_file;
+$param_h{'r'}      = $param{'r'}; 
+$param_h{'c'}      = $param{'c'};             
+$param_h{'keep'}   = 1; 
+$param_h{'clean'}  = 1;
+$param_h{'tile_array'} = \@tile_array;
+gen_code(\%param_h);
+chdir $path or die "$!. $path\n";
 
 ###########################################
 #- Generate: Do not modify

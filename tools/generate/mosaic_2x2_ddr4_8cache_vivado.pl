@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # *************************************************************************
 # 
 # *** Copyright Notice ***
@@ -20,7 +21,6 @@
 # to do so.
 #
 # *************************************************************************
-#!/usr/bin/perl
 
 use lib "$ENV{PWD}";
 use gen_mosaic;
@@ -57,7 +57,6 @@ $param{'ddr_init_file'} = 'test_tile_nop.hex';
 @checkers;
 push(@checkers,'check_pico_spad.sh');
 push(@checkers,'check_pico_ddr4_ctrl.sh');
-push(@checkers,'check_pkt_cache.sh');
 
 #- Running with Vivado
 $param{'vivado'}         = 1;  

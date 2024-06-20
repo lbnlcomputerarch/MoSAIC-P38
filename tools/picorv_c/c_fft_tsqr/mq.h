@@ -1,25 +1,3 @@
-// *************************************************************************
-// 
-// *** Copyright Notice ***
-//
-// P38 heterogeneous multi-tiled system with support for message queues 
-// (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
-// through Lawrence Berkeley National Laboratory (subject to receipt of
-// any required approvals from the U.S. Dept. of Energy). All rights reserved.
-// 
-// If you have questions about your rights to use or distribute this software,
-// please contact Berkeley Lab's Intellectual Property Office at
-// IPO@lbl.gov.
-//
-// NOTICE.  This Software was developed under funding from the U.S. Department
-// of Energy and the U.S. Government consequently retains certain rights.  As
-// such, the U.S. Government has been granted for itself and others acting on
-// its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
-// Software to reproduce, distribute copies to the public, prepare derivative 
-// works, and perform publicly and display publicly, and to permit others 
-// to do so.
-//
-// *************************************************************************
 
 // See LICENSE for license details.
 
@@ -40,7 +18,9 @@
 #define mq_DO_NO   0
 #define mq_DO_PUTH 1
 #define mq_DO_PUTD 2
-
+#define mq_DO_H 1
+#define mq_DO_D 2
+#define mq_DO_DMA  3
 #define XCUSTOM_MQ 1
 
 #define qPut(destination_qid, source_data) \
@@ -80,5 +60,13 @@
 #define mPutD(addr1, addr2) \
   PCPI_INSTRUCTION_0_R_R(XCUSTOM_MQ, addr1, addr2, mq_DO_MPUT, mq_DO_PUTD);
 
+#define mGetH(remote_dest, pktSizeCode) \
+  PCPI_INSTRUCTION_0_R_R(XCUSTOM_MQ, remote_dest, pktSizeCode, mq_DO_MGET, mq_DO_H);
+
+#define mGetD(source_data1, source_data2) \
+  PCPI_INSTRUCTION_0_R_R(XCUSTOM_MQ, source_data1, source_data2, mq_DO_MGET, mq_DO_D);
+
+#define mGetDMA(remote_dest, pktSizeCode) \
+  PCPI_INSTRUCTION_0_R_R(XCUSTOM_MQ, remote_dest, pktSizeCode, mq_DO_MGET, mq_DO_DMA);
 
 
