@@ -45,7 +45,7 @@ use POSIX;
 %new_tile;
 
 #- Pair the verilog file with an alias for each new tile (User)
-$new_tile{'acc1'} = 'Tile_fft';
+$new_tile{'fft'} = 'Tile_fft';
 
 #- Add it to the parameters (Needed)
 $param{'new_tile'} = \%new_tile;
@@ -62,7 +62,7 @@ $param{'c'} = 2;
 $c_file = "send_msg"; 
 
 @tile_array = (['pico', 'loop'],
-               ['loop', 'acc1']);
+               ['loop', 'fft']);
 
 $param{'firmware_path'} = $fw_path;
 
@@ -70,7 +70,7 @@ $param{'firmware_path'} = $fw_path;
                                    '', '');
 
 #- Simulation Time
-$param{'sim_loop'} = 1000;
+$param{'sim_loop'} = 8000;
 
 #- Simulation Time
 $param{'run_sim'} = 1;

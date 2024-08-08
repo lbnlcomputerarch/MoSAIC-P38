@@ -224,7 +224,8 @@ noc_buffer_out#(
 );
 
 qISAExtension_pcpi#(
-   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W-2)
+   //.NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W-2)  //- FIXME: Why -2
+   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W)  
 ) qISAExtension_pcpi(
    //- Clock and reset
    .clk_ctrl         (clk_ctrl),

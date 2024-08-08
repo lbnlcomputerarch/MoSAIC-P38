@@ -1,40 +1,13 @@
-// *************************************************************************
-// 
-// *** Copyright Notice ***
-//
-// P38 heterogeneous multi-tiled system with support for message queues 
-// (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
-// through Lawrence Berkeley National Laboratory (subject to receipt of
-// any required approvals from the U.S. Dept. of Energy). All rights reserved.
-// 
-// If you have questions about your rights to use or distribute this software,
-// please contact Berkeley Lab's Intellectual Property Office at
-// IPO@lbl.gov.
-//
-// NOTICE.  This Software was developed under funding from the U.S. Department
-// of Energy and the U.S. Government consequently retains certain rights.  As
-// such, the U.S. Government has been granted for itself and others acting on
-// its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
-// Software to reproduce, distribute copies to the public, prepare derivative 
-// works, and perform publicly and display publicly, and to permit others 
-// to do so.
-//
-// *************************************************************************
-
-
 ////////////////////////////////////////////////
-// Author      : Mario Vega
-// Date        : Jan 29 2024
-// Description : Instantiate Fast Fourier 
-//               Transform (FFT) accelerator
-// File        : acc_fft.sv
-// Notes       : 
-//    - Derived from FP units
+// Author      : Patricia Gonzalez-Guerrero
+// Date        : Sept 29 2022
+// Description : Accelerator with scratchpad
+// File        : acc_scratchpad.sv
 ////////////////////////////////////////////////
 
 `timescale 1 ps/ 1 ps
 
-module acc_fft#(
+module acc_fft_sw4#(
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3,
    parameter TYPE              = "FFT",
@@ -76,6 +49,7 @@ localparam [2:0] MPUT = 3'd4;
 localparam FIFO_WRITE_DEPTH = 65536;
 localparam COUNT_WIDTH = 16;
 localparam PROG_FULL_THRESH = 5;
+localparam FFT_streamingwidth = 4;
 
 logic [COUNT_WIDTH-1:0] header_rd_data_count;
 logic [COUNT_WIDTH-1:0] header_wr_data_count;
@@ -102,20 +76,18 @@ logic next_in_fft_en;
 logic in_valid;
 logic next_in_valid;
 logic out_ready;
-logic in_get_tile;
-logic next_in_get_tile;
-logic out_fft_fulln;
-logic [63:0] in_data_0;
-logic [63:0] next_in_data_0;
-logic [63:0] in_data_1;
-logic [63:0] next_in_data_1;
-logic [63:0] out_data_0;
+logic [64*FFT_streamingwidth-1:0] in_data_0;
+logic [64*FFT_streamingwidth-1:0] next_in_data_0;
+//logic [63:0] in_data_1;
+//logic [63:0] next_in_data_1;
+logic [64*FFT_streamingwidth-1:0] out_data_0;
+//logic [63:0] out_data_1;
 
-logic [2:0] state_in;
-logic [2:0] next_state_in;
+logic [9:0] state_in;
+logic [9:0] next_state_in;
 
-logic [3:0] state_out;
-logic [3:0] next_state_out;
+logic [9:0] state_out;
+logic [9:0] next_state_out;
 
 logic [7:0] next_pkt_ctr;
 logic [7:0] pkt_ctr;
@@ -140,10 +112,6 @@ logic [5:0] dest;
 
 logic out_empty;
 logic out_full;
-
-logic [11:0] spad_offst;
-logic [11:0] next_spad_offst;
-
 
 
 noc_buffer_in#(
@@ -172,21 +140,32 @@ noc_buffer_in#(
 
 generate
 if (TYPE == "FFT") begin
-   Batched3DFFT8_RealOutv6 FFT (
+   FFT4w4 FFT (
       .clock         (clk_ctrl),
       .reset         (clk_ctrl_rst_high),
       .io_in_inv     (1'b0),
       .io_in_ready   (in_fft_en),
-      .io_in_0_Re    (in_data_0[63:32]),
-      .io_in_0_Im    (in_data_0[31:0] ),
-      .io_in_1_Re    (in_data_1[63:32]),
-      .io_in_1_Im    (in_data_1[31:0] ),
+      .io_in_0_Re    (in_data_0[32*2-1:32*1]  ),
+      .io_in_0_Im    (in_data_0[32*1-1:32*0]   ),
+      .io_in_1_Re    (in_data_0[32*4-1:32*3] ),
+      .io_in_1_Im    (in_data_0[32*3-1:32*2]  ),
+      .io_in_2_Re    (in_data_0[32*6-1:32*5]  ),
+      .io_in_2_Im    (in_data_0[32*5-1:32*4]   ),
+      .io_in_3_Re    (in_data_0[32*8-1:32*7] ),
+      .io_in_3_Im    (in_data_0[32*7-1:32*6]  ),
       .io_in_valid   (in_valid),
-      .io_in_get_tile(in_get_tile),
       .io_out_valid  (out_ready),
-      .io_out_ready  (out_fft_fulln),
-      .io_out_0      (out_data_0[31:0]),
-      .io_out_1      (out_data_0[63:32]));
+      .io_out_0_Re      (out_data_0[32*2-1:32*1] ),
+      .io_out_0_Im      (out_data_0[32*1-1:32*0] ),
+      .io_out_1_Re      (out_data_0[32*4-1:32*3] ),
+      .io_out_1_Im      (out_data_0[32*3-1:32*2]    ),
+      .io_out_2_Re      (out_data_0[32*6-1:32*5] ),
+      .io_out_2_Im      (out_data_0[32*5-1:32*4] ),
+      .io_out_3_Re      (out_data_0[32*8-1:32*7] ),
+      .io_out_3_Im      (out_data_0[32*7-1:32*6]   )
+
+
+      );
 end
 
 logic out_almost_full;
@@ -205,24 +184,17 @@ always @(*) begin
    // in_valid = 1'b0;
    next_in_valid = 1'b0;
    next_in_data_0 = in_data_0;
-   next_in_data_1 = in_data_1;
+//   next_in_data_1 = in_data_1;
 
    stream_in_TREADY_int = 1'b1;
-
-   if(!out_fft_fulln && in_get_tile && in_fft_en) begin
-       next_in_get_tile = 1'b0;
-   end else begin
-       next_in_get_tile = in_get_tile;
-   end
-
 
    case (state_in)
       0: begin // so if noc out can receive inputs and header or data buf not near full
          if (stream_out_TREADY_int & ~header_almost_full & ~out_almost_full) begin
             if (stream_in_TVALID_int) begin // we have valid in from noc in
-               if(stream_in_TDATA_int[28] == 1'b0) begin
-                   next_state_in = 'h7;
-               end else if (in_fft_en) begin
+               if(stream_in_TDATA_int[28] == 1'b0) begin // if short packet
+                   next_state_in = 'hb;
+               end else if (in_fft_en) begin // else if long packet
                    next_header_reg = stream_in_TDATA_int; // it is the first part of header
                    next_state_in = 'h1;
                end
@@ -245,10 +217,10 @@ always @(*) begin
                next_dest = 'h0;
             end else begin //- Default: send back to pico // Loops
 //               header_din = 32'b000_1_100_0_001_001_000000_0110_00_010_000;
-               header_din = {3'h0,1'b1,MPUT,1'b0,HsrcId,6'h0,pkt_sz_code,2'h0,6'b010_000};
+               header_din = {3'h0,1'b1,MPUT,1'b0,HsrcId,6'h0,pkt_sz_code,2'h0,6'b000_000};
                next_code = 2'b00;
 //               next_dest = 6'b010_000;
-               next_dest = 6'b010_000;
+               next_dest = 6'b000_000;
             end
             next_state_in = 'h2;
          end
@@ -258,64 +230,66 @@ always @(*) begin
             header_wr_en = 1'b1;
 //            header_din = 32'b0000_0000_0000_00_010_000_0000_0000_0000; //- Write second part of the header.
             header_din = {20'h0,code,2'h0,dest}; //- Write second part of the header.
-            if(stream_in_TDATA_int > 32'h0) begin 
-                next_in_data_0[63:32] = stream_in_TDATA_int; // finally get first part of data
-            end else begin
-                next_in_data_0[63:32] = 32'h0;
-            end
+            next_in_data_0[32*2-1:32*1] = stream_in_TDATA_int; // finally get first part of data
             next_state_in = 'h3;
          end
       end
       3: begin
          if (stream_in_TVALID_int) begin
-            if(stream_in_TDATA_int > 32'h0) begin 
-                next_in_data_0[31:0] = stream_in_TDATA_int; // finally get first part of data
-            end else begin
-                next_in_data_0[31:0] = 32'h0;
-            end
+            next_in_data_0[32*1-1:32*0] = stream_in_TDATA_int;
             next_state_in = 'h4;
          end
       end
       4: begin
          if (stream_in_TVALID_int) begin
-            if(stream_in_TDATA_int > 32'h0) begin 
-                next_in_data_1[63:32] = stream_in_TDATA_int; // finally get first part of data
-            end else begin
-                next_in_data_1[63:32] = 32'h0;
-            end
+            next_in_data_0[32*4-1:32*3] = stream_in_TDATA_int;
             next_state_in = 'h5;
          end
       end
       5: begin
-         if (stream_in_TVALID_int) begin //- Finish this last one anyway
-            next_in_valid = 1'b1;
-            if(stream_in_TDATA_int > 32'h0) begin 
-                next_in_data_1[31:0] = stream_in_TDATA_int; // finally get first part of data
-            end else begin
-                next_in_data_1[31:0] = 32'h0;
-            end
-            if (stream_in_TLAST_int)
-               next_state_in = 'h0;
-            else
-               next_state_in = 'h6;
+         if (stream_in_TVALID_int) begin
+            next_in_data_0[32*3-1:32*2] = stream_in_TDATA_int;
+            next_state_in = 'h6;
          end
       end
       6: begin
          if (stream_in_TVALID_int) begin
-            if(stream_in_TDATA_int > 32'h0) begin 
-                next_in_data_0[63:32] = stream_in_TDATA_int; // finally get first part of data
-            end else begin
-                next_in_data_0[63:32] = 32'h0;
-            end
-            next_state_in = 'h3;
+            next_in_data_0[32*6-1:32*5] = stream_in_TDATA_int;
+            next_state_in = 'h7;
          end
       end
       7: begin
          if (stream_in_TVALID_int) begin
-            if(stream_in_TDATA_int == 32'h8000_0000) begin
+            next_in_data_0[32*5-1:32*4] = stream_in_TDATA_int;
+            next_state_in = 'h8;
+         end
+      end
+      8: begin
+         if (stream_in_TVALID_int) begin
+            next_in_data_0[32*8-1:32*7] = stream_in_TDATA_int;
+            next_state_in = 'h9;
+         end
+      end
+      9: begin
+         if (stream_in_TVALID_int) begin //- Finish this last one anyway
+            next_in_valid = 1'b1;
+            next_in_data_0[32*7-1:32*6] = stream_in_TDATA_int;
+            if (stream_in_TLAST_int)
+               next_state_in = 'h0;
+            else
+               next_state_in = 'ha;
+         end
+      end
+      10: begin
+         if (stream_in_TVALID_int) begin
+            next_in_data_0[32*2-1:32*1] = stream_in_TDATA_int;
+            next_state_in = 'h3;
+         end
+      end
+      11: begin
+         if (stream_in_TVALID_int) begin
+            if(stream_in_TDATA_int == 32'h8000_0000) begin // enable the fft
                 next_in_fft_en = !in_fft_en;
-            end else if(stream_in_TDATA_int == 32'b1 && !in_get_tile) begin
-                next_in_get_tile = 1'b1;
             end
             next_state_in = 'h0;
          end
@@ -327,7 +301,7 @@ end
 if (TYPE == "SQRT")
    assign pkt_sz_code = header_reg[11:8];
 else
-   assign pkt_sz_code = 4'b0110;
+   assign pkt_sz_code = header_reg[11:8]; // depnds on desired packet size output
 
 endgenerate
 
@@ -337,12 +311,11 @@ always @(posedge clk_ctrl) begin
    if (~clk_ctrl_rst_low) begin
       state_in <= 'h0;
       in_data_0 <= 'h0;
-      in_data_1 <= 'h0;
+//      in_data_1 <= 'h0;
       header_reg <= 'h0;
       code <= 'h0;
       dest <= 'h0;
       in_valid <= 1'b0;
-      in_get_tile <= 1'b0;
       in_fft_en <= 1'b0;
    end else begin
       dest <= next_dest;
@@ -350,9 +323,8 @@ always @(posedge clk_ctrl) begin
       header_reg <= next_header_reg;
       state_in  <= next_state_in;
       in_data_0 <= next_in_data_0;
-      in_data_1 <= next_in_data_1;
+//      in_data_1 <= next_in_data_1;
       in_valid <= next_in_valid;
-      in_get_tile <= next_in_get_tile;
       in_fft_en <= next_in_fft_en;
    end
 end
@@ -360,27 +332,23 @@ end
 //- Like a NoC encoder
 
 
-logic [63:0] out_dout;
+logic [64*FFT_streamingwidth-1:0] out_dout;
 logic out_rd_en;
 
 always @(posedge clk_ctrl) begin
    if (~clk_ctrl_rst_low) begin
       state_out    <= 'h0;
       pkt_ctr      <= 'h0;
-      spad_offst <= 12'h0;
    end else begin
       state_out    <= next_state_out;
       pkt_ctr      <= next_pkt_ctr;
-      spad_offst <= next_spad_offst;
    end
 end
-
 
 
 always @(*) begin
    next_state_out = state_out;
    next_pkt_ctr = pkt_ctr;
-   next_spad_offst = spad_offst;
 
    header_rd_en = 1'b0;
    out_rd_en = 1'b0;
@@ -403,9 +371,9 @@ always @(*) begin
          if (stream_out_TREADY_int) begin
             header_rd_en   = 1'b1;
             stream_out_TVALID_int = 1'b1;
-            stream_out_TDATA_int  = {3'h0,1'b1,MPUT,1'b0,HsrcId,6'h0,4'b0110,2'h0,6'b010_000};
+            stream_out_TDATA_int  = header_dout;
             stream_out_TKEEP_int  = 'hFFFF;
-            next_pkt_ctr          = 1 << 4'b0110 - 1; // might potentially need to change this
+            next_pkt_ctr          = 1 << header_dout[11:8] - 3;
             next_state_out        = 2;
          end
       end
@@ -413,7 +381,7 @@ always @(*) begin
          if (stream_out_TREADY_int) begin
             out_rd_en        = 1'b1;
             stream_out_TVALID_int = 1'b1;
-            stream_out_TDATA_int  = {14'h0,6'b010_000,spad_offst};
+            stream_out_TDATA_int  = header_dout;
             stream_out_TKEEP_int  = 'hFFFF;
             next_state_out        = 3;
          end
@@ -422,7 +390,7 @@ always @(*) begin
          if (stream_out_TREADY_int) begin
             stream_out_TVALID_int = 1'b1;
             stream_out_TKEEP_int = 'hFFFF;
-            stream_out_TDATA_int = out_dout[31:0];
+            stream_out_TDATA_int = out_dout[32*1-1:32*0];
             next_state_out = 4;
          end
       end
@@ -430,48 +398,69 @@ always @(*) begin
          if (stream_out_TREADY_int) begin
             stream_out_TVALID_int = 1'b1;
             stream_out_TKEEP_int = 'hFFFF;
-            stream_out_TDATA_int = out_dout[63:32];
-            next_pkt_ctr = pkt_ctr - 1;
-            if (pkt_ctr == 'h1) begin // we have all of our packets
-               stream_out_TLAST_int = 1'b1;
-               next_state_out = 6;
-            end else if (~out_empty) begin
-               out_rd_en = 1'b1;
-               next_state_out = 3; // keep reading out data
-            end else next_state_out = 5;
+            stream_out_TDATA_int = out_dout[32*2-1:32*1];
+            next_state_out = 5;
          end
       end
       5: begin
-         if (~out_empty) begin
-            out_rd_en = 1'b1;
-            next_state_out = 3;
+         if (stream_out_TREADY_int) begin
+            stream_out_TVALID_int = 1'b1;
+            stream_out_TKEEP_int = 'hFFFF;
+            stream_out_TDATA_int = out_dout[32*3-1:32*2];
+            next_state_out = 6;
          end
       end
       6: begin
          if (stream_out_TREADY_int) begin
             stream_out_TVALID_int = 1'b1;
             stream_out_TKEEP_int = 'hFFFF;
-            stream_out_TDATA_int = {3'h0,1'b0,3'b011,1'b0,6'b001_000,6'h0,4'b0000,2'h0,6'b010_001};
-            next_state_out = 7;           
+            stream_out_TDATA_int = out_dout[32*4-1:32*3];
+            next_state_out = 7;
          end
       end
       7: begin
          if (stream_out_TREADY_int) begin
             stream_out_TVALID_int = 1'b1;
             stream_out_TKEEP_int = 'hFFFF;
-            stream_out_TDATA_int = 32'b11;
-            stream_out_TLAST_int = 1'b1;
-            next_state_out = 0;           
-            next_spad_offst = spad_offst + 12'h40;
+            stream_out_TDATA_int = out_dout[32*5-1:32*4];
+            next_state_out = 8;
          end
       end
       8: begin
          if (stream_out_TREADY_int) begin
             stream_out_TVALID_int = 1'b1;
             stream_out_TKEEP_int = 'hFFFF;
-            stream_out_TDATA_int = 32'h0;
-            stream_out_TLAST_int = 1'b1;
-            next_state_out = 0;  
+            stream_out_TDATA_int = out_dout[32*6-1:32*5];
+            next_state_out = 9;
+         end
+      end
+      9: begin
+         if (stream_out_TREADY_int) begin
+            stream_out_TVALID_int = 1'b1;
+            stream_out_TKEEP_int = 'hFFFF;
+            stream_out_TDATA_int = out_dout[32*7-1:32*6];
+            next_state_out = 10;
+         end
+      end
+      10: begin
+         if (stream_out_TREADY_int) begin
+            stream_out_TVALID_int = 1'b1;
+            stream_out_TKEEP_int = 'hFFFF;
+            stream_out_TDATA_int = out_dout[32*8-1:32*7];
+            next_pkt_ctr = pkt_ctr - 1;
+            if (pkt_ctr == 'h1) begin // we have all of our packets
+               stream_out_TLAST_int = 1'b1;
+               next_state_out = 0;
+            end else if (~out_empty) begin
+               out_rd_en = 1'b1;
+               next_state_out = 3; // keep reading out data
+            end else next_state_out = 11;
+         end
+      end
+      11: begin
+         if (~out_empty) begin
+            out_rd_en = 1'b1;
+            next_state_out = 3;
          end
       end
    endcase
@@ -535,12 +524,12 @@ xpm_fifo_sync #(
    .PROG_EMPTY_THRESH   (),    // DECIMAL
    .PROG_FULL_THRESH    (PROG_FULL_THRESH),     // DECIMAL
    .RD_DATA_COUNT_WIDTH (COUNT_WIDTH),   // DECIMAL
-   .READ_DATA_WIDTH     (64),      // DECIMAL
+   .READ_DATA_WIDTH     (64*FFT_streamingwidth),      // DECIMAL
    .READ_MODE           ("std"),         // String
    .SIM_ASSERT_CHK      (0),        // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
    .USE_ADV_FEATURES    ("070f"), // String
    .WAKEUP_TIME         (0),           // DECIMAL
-   .WRITE_DATA_WIDTH    (64),     // DECIMAL
+   .WRITE_DATA_WIDTH    (64*FFT_streamingwidth),     // DECIMAL
    .WR_DATA_COUNT_WIDTH (COUNT_WIDTH)    // DECIMAL
 ) xpm_fifo_sync_output (
    .almost_empty  (),
