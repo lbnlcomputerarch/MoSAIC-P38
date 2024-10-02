@@ -3,7 +3,7 @@ package mosaic
 import chisel3._
 import chisel3.util._
 
-class StreamIO(
+class StreamIO (
   datSize : Int = 32
 ) extends Bundle {
   val packet = Decoupled(new Bundle {
@@ -13,13 +13,13 @@ class StreamIO(
   })
 }
 
-class MetadataIO(
+class MetadataIO (
   datSize : Int = 128
 ) extends Bundle {
   val data = Valid(UInt(datSize.W))
 }
 
-class AXI4LiteTargetIO(
+class AXI4LiteTargetIO (
   adrSize : Int = 12,
   datSize : Int = 32,
   rspSize : Int = 2
@@ -53,7 +53,7 @@ class AXI4LiteTargetIO(
   })
 }
 
-class AXI4InitiatorIO(
+class AXI4InitiatorIO (
   idSize  : Int = 11,
   adrSize : Int = 34,
   lenSize : Int = 8,  // LENGTH

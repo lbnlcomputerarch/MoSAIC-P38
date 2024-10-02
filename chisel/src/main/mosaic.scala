@@ -9,8 +9,8 @@ class mosaic (
     // ddr4_ctrl: Boolean = false
 ) extends BlackBox (
     Map(
-        "BW" -> IntParam(bw)
-        )
+      "BW" -> IntParam(bw)
+    )
 ) {
     val bwb : Int =             bw / 8
     val S_AXI_ID_SZ  : Int =    11
