@@ -93,7 +93,7 @@ class MoSAICTile extends Module {
   tiles.io.clk_control :=     clock
 
   tiles.io.enable_processing := io.enableProcessing
-  io.internalResetDone = tiles.io.internal_rst_done
+  io.internalResetDone := tiles.io.internal_rst_done
 }
 
 object Main extends App {
