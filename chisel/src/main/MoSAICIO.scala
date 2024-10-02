@@ -3,60 +3,69 @@ package mosaic
 import chisel3._
 import chisel3.util._
 
-class StreamIO(bw : Int = 32) extends Bundle {
+class StreamIO(
+  datSize : Int = 32
+) extends Bundle {
   val packet = Decoupled(new Bundle {
     val last = Bool()
-    val data = UInt(bw.W)
-    val keep = UInt((bw / 8).W)
+    val data = UInt(datSize.W)
+    val keep = UInt((datSize / 8).W)
   })
 }
 
-class MetadataIO extends Bundle {
-  val data = Valid(UInt(128.W))
+class MetadataIO(
+  datSize : Int = 128
+) extends Bundle {
+  val data = Valid(UInt(datSize.W))
 }
 
-class AXI4LiteTargetIO(bw : Int = 32) extends Bundle {
+class AXI4LiteTargetIO(
+  adrSize : Int = 12,
+  datSize : Int = 32,
+  rspSize : Int = 2
+) extends Bundle {
+  val stbSize : Int = datSize / 8 // STROBE
   // Address Write
   val aw = Flipped(Decoupled(new Bundle {
-    val addr = UInt(12.W)
+    val addr = UInt(adrSize.W)
   }))
 
   // Write
   val w = Flipped(Decoupled(new Bundle {
-    val data = UInt(bw.W)
-    val strb = UInt((bw / 8).W)
+    val data = UInt(datSize.W)
+    val strb = UInt(stbSize.W)
   }))
 
   // Write Response
   val b = Decoupled(new Bundle {
-    val resp = UInt(2.W)
+    val resp = UInt(rspSize.W)
   })
 
   // Address Read
   val ar = Flipped(Decoupled(new Bundle {
-    val addr = UInt(12.W)
+    val addr = UInt(adrSize.W)
   }))
 
   // Read Response
   val r = Decoupled(new Bundle {
-    val data = UInt(bw.W)
-    val resp = UInt(2.W)
+    val data = UInt(datSize.W)
+    val resp = UInt(rspSize.W)
   })
 }
 
-class AXI4TargetIO(
-  idSize : Int =  11,
+class AXI4InitiatorIO(
+  idSize  : Int = 11,
   adrSize : Int = 34,
   lenSize : Int = 8,  // LENGTH
   szeSize : Int = 3,  // SIZE
   brtSize : Int = 2,  // BURST
   datSize : Int = 512,// DATA
-  stbSize : Int = 64, // STROBE
   rspSize : Int = 2,  // RESPONSE
   cacSize : Int = 4,  // CACHE
   prtSize : Int = 3,  // PROT
   qosSize : Int = 4   // QOS
 ) extends Bundle {
+  val stbSize : Int = datSize / 8 // STROBE
   // Address Write
   val aw = Decoupled(new Bundle {
     val id =    UInt(idSize.W)
