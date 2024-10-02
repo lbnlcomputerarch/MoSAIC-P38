@@ -1,0 +1,7 @@
+build
+icarus/file_list.txt
+shell/fpga/mosaic_setup.h
+.vscode
+.scala-build
+.metals
+.bsp
