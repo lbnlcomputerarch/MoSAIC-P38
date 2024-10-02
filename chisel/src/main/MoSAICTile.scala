@@ -11,18 +11,20 @@ import _root_.circt.stage.ChiselStage
 
 class MoSAICTile extends Module {
   val io = IO(new Bundle {
-    val control = new AXI4TargetIO()
+    val control =           new AXI4LiteTargetIO()
+    val enableProcessing =  Input(Bool())
+    val internalResetDone = Output(Bool())
   })
 
   // Packet Interface
   val stream = Wire(new Bundle {
-    val in = Flipped(new StreamIO())
+    val in =  Flipped(new StreamIO())
     val out = new StreamIO()
   })
 
   // Metadata Interface
   val meta = Wire(new Bundle {
-    val in = Flipped(new MetadataIO())
+    val in =  Flipped(new MetadataIO())
     val out = new MetadataIO()
   })
 
@@ -90,8 +92,8 @@ class MoSAICTile extends Module {
   tiles.io.clk_control_rst := reset.asBool
   tiles.io.clk_control :=     clock
 
-  tiles.io.enable_processing := true.asBool
-  val internalResetDone = RegNext(tiles.io.internal_rst_done)
+  tiles.io.enable_processing := io.enableProcessing
+  io.internalResetDone = tiles.io.internal_rst_done
 }
 
 object Main extends App {
