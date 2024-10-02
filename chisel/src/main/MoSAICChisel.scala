@@ -9,7 +9,7 @@ import chisel3._
 // _root_ disambiguates from package chisel3.util.circt if user imports chisel3.util._
 import _root_.circt.stage.ChiselStage
 
-class MoSAICTile extends Module {
+class MoSAICChisel extends Module {
   val io = IO(new Bundle {
     val control =           new AXI4LiteTargetIO()
     val enableProcessing =  Input(Bool())
@@ -99,7 +99,7 @@ class MoSAICTile extends Module {
 object Main extends App {
   println(
     ChiselStage.emitSystemVerilog(
-      gen = new MoSAICTile(),
+      gen = new MoSAICChisel(),
       firtoolOpts = Array(
         "-disable-all-randomization",
         "-strip-debug-info"

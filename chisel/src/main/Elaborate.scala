@@ -8,7 +8,7 @@ object Elaborate extends App {
   ).reduce(_ + "," + _))
   println(
     circt.stage.ChiselStage.emitSystemVerilogFile(
-      new mosaic.MoSAICTile(),
+      new mosaic.MoSAICChisel(),
       args,
       firtoolOptions
     )
