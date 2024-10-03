@@ -24,9 +24,9 @@ class mosaic (
   val S_AXI_DAT_SZ : Int =    512// DATA
   val S_AXI_STB_SZ : Int =    64 // STROBE
   val S_AXI_RSP_SZ : Int =    2  // RESPONSE
-  val S_AXI_CAC_SZ : Int =    4  // RESPONSE
-  val S_AXI_PRT_SZ : Int =    3  // RESPONSE
-  val S_AXI_QOS_SZ : Int =    4  // RESPONSE
+  val S_AXI_CAC_SZ : Int =    4  // CACHE
+  val S_AXI_PRT_SZ : Int =    3  // PROT
+  val S_AXI_QOS_SZ : Int =    4  // QOS
 
   val io = IO(new Bundle {
     //////////////////////
