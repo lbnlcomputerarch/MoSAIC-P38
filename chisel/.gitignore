@@ -24,3 +24,6 @@ target
 
 # scala-cli
 .scala-build
+
+# Preprocessed Verilog
+*.preprocessed.sv
