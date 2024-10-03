@@ -14,7 +14,7 @@ This project can be built with the following build tools:
 ### `scala-cli`
 
 ```bash
-scala-cli MoSAICChisel.scala MoSAICIO.scala mosaic.scala
+scala-cli src/main/scala/mosaic/MoSAICChisel.scala src/main/scala/mosaic/MoSAICIO.scala src/main/scala/mosaic/mosaic.scala
 ```
 
 The generated SystemVerilog will be displayed to the console.
