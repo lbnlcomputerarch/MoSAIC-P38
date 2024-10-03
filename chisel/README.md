@@ -4,15 +4,28 @@ Simple Chisel 6 wrapper for MoSAIC.
 
 ## Dependencies
 
-This project depends on [Mill](https://mill-build.com/), a modern Scala build tool that's more user friendly than SBT. The instructions for installing `mill` can be found [here](https://www.chisel-lang.org/docs/installation#mill).
+This project can be built with the following build tools:
+
+- [`scala-cli`](https://scala-cli.virtuslab.org/install) is the easiest way to build Chisel.
+- [Mill](https://mill-build.com/), a modern Scala build tool that's more user friendly than SBT. The instructions for installing `mill` can be found [here](https://www.chisel-lang.org/docs/installation#mill).
 
 ## Build Verilog
 
-To build the Chisel design, simply run the following:
+### `scala-cli`
+
+```bash
+scala-cli MoSAICChisel.scala MoSAICIO.scala mosaic.scala
+```
+
+The generated SystemVerilog will be displayed to the console.
+
+### `mill`
 
 ```bash
 make verilog
 ```
+
+You'll find the generated SystemVerilog in `build`.
 
 ## References
 
