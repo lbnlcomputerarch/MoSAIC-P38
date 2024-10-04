@@ -6,75 +6,76 @@ import chisel3._
 import chisel3.util.HasBlackBoxPath
 import chisel3.experimental._ // To enable experimental features
 
-class mosaic (
+class mosaic(
   bw: Int = 32,
   // ddr4_ctrl: Boolean = false
-  mosaicConfig : String = s"mosaic_2x2_firesim"
-) extends BlackBox (
-  Map(
-    "BW" -> IntParam(bw)
-  )
-) with HasBlackBoxPath {
-  val bwb : Int =             bw / 8
-  val S_AXI_ID_SZ  : Int =    11
-  val S_AXI_ADR_SZ : Int =    34 // ADDRESS
-  val S_AXI_LEN_SZ : Int =    8  // LENGTH
-  val S_AXI_SZE_SZ : Int =    3  // SIZE
-  val S_AXI_BRT_SZ : Int =    2  // BURST
-  val S_AXI_DAT_SZ : Int =    512// DATA
-  val S_AXI_STB_SZ : Int =    64 // STROBE
-  val S_AXI_RSP_SZ : Int =    2  // RESPONSE
-  val S_AXI_CAC_SZ : Int =    4  // CACHE
-  val S_AXI_PRT_SZ : Int =    3  // PROT
-  val S_AXI_QOS_SZ : Int =    4  // QOS
+  mosaicConfig: String = s"mosaic_2x2_firesim")
+    extends BlackBox(
+      Map(
+        "BW" -> IntParam(bw)
+      )
+    )
+    with HasBlackBoxPath {
+  val bwb:          Int = bw / 8
+  val S_AXI_ID_SZ:  Int = 11
+  val S_AXI_ADR_SZ: Int = 34 // ADDRESS
+  val S_AXI_LEN_SZ: Int = 8 // LENGTH
+  val S_AXI_SZE_SZ: Int = 3 // SIZE
+  val S_AXI_BRT_SZ: Int = 2 // BURST
+  val S_AXI_DAT_SZ: Int = 512 // DATA
+  val S_AXI_STB_SZ: Int = 64 // STROBE
+  val S_AXI_RSP_SZ: Int = 2 // RESPONSE
+  val S_AXI_CAC_SZ: Int = 4 // CACHE
+  val S_AXI_PRT_SZ: Int = 3 // PROT
+  val S_AXI_QOS_SZ: Int = 4 // QOS
 
   val io = IO(new Bundle {
     //////////////////////
     // Packet interface
     //////////////////////
-    //Input
-    val stream_in_packet_in_TVALID =    Input(Bool())
-    val stream_in_packet_in_TLAST =     Input(Bool())
-    val stream_in_packet_in_TDATA =     Input(UInt(bw.W))
-    val stream_in_packet_in_TKEEP =     Input(UInt(bwb.W))
-    val stream_in_packet_in_TREADY =    Output(Bool())
+    // Input
+    val stream_in_packet_in_TVALID = Input(Bool())
+    val stream_in_packet_in_TLAST  = Input(Bool())
+    val stream_in_packet_in_TDATA  = Input(UInt(bw.W))
+    val stream_in_packet_in_TKEEP  = Input(UInt(bwb.W))
+    val stream_in_packet_in_TREADY = Output(Bool())
 
-    //Output
-    val stream_out_packet_out_TVALID =  Output(Bool())
-    val stream_out_packet_out_TLAST =   Output(Bool())
-    val stream_out_packet_out_TDATA =   Output(UInt(bw.W))
-    val stream_out_packet_out_TKEEP =   Output(UInt(bwb.W))
-    val stream_out_packet_out_TREADY =  Input(Bool())
+    // Output
+    val stream_out_packet_out_TVALID = Output(Bool())
+    val stream_out_packet_out_TLAST  = Output(Bool())
+    val stream_out_packet_out_TDATA  = Output(UInt(bw.W))
+    val stream_out_packet_out_TKEEP  = Output(UInt(bwb.W))
+    val stream_out_packet_out_TREADY = Input(Bool())
 
     ////////////////////
     // AXI
     ////////////////////
-    //Address Write
-    val control_S_AXI_AWADDR =  Input(UInt(12.W))
+    // Address Write
+    val control_S_AXI_AWADDR  = Input(UInt(12.W))
     val control_S_AXI_AWVALID = Input(Bool())
     val control_S_AXI_AWREADY = Output(Bool())
 
-    //Write
-    val control_S_AXI_WDATA =   Input(UInt(bw.W))
-    val control_S_AXI_WSTRB =   Input(UInt(bwb.W))
-    val control_S_AXI_WVALID =  Input(Bool())
-    val control_S_AXI_WREADY =  Output(Bool())
+    // Write
+    val control_S_AXI_WDATA  = Input(UInt(bw.W))
+    val control_S_AXI_WSTRB  = Input(UInt(bwb.W))
+    val control_S_AXI_WVALID = Input(Bool())
+    val control_S_AXI_WREADY = Output(Bool())
 
-    //Write Response
-    val control_S_AXI_BRESP =   Output(UInt(2.W))
-    val control_S_AXI_BVALID =  Output(Bool())
-    val control_S_AXI_BREADY =  Input(Bool())
+    // Write Response
+    val control_S_AXI_BRESP  = Output(UInt(2.W))
+    val control_S_AXI_BVALID = Output(Bool())
+    val control_S_AXI_BREADY = Input(Bool())
 
-    //Address Read
-    val control_S_AXI_ARADDR =  Input(UInt(12.W))
+    // Address Read
+    val control_S_AXI_ARADDR  = Input(UInt(12.W))
     val control_S_AXI_ARVALID = Input(Bool())
     val control_S_AXI_ARREADY = Output(Bool())
 
-    //Read Response
-    val control_S_AXI_RDATA =   Output(UInt(bw.W))
-    val control_S_AXI_RRESP =   Output(UInt(2.W))
-    val control_S_AXI_RVALID =  Output(Bool())
-    val control_S_AXI_RREADY =  Input(Bool())
+    // Read Response
+    val control_S_AXI_RDATA  = Output(UInt(bw.W))
+    val control_S_AXI_RRESP  = Output(UInt(2.W))
+    val control_S_AXI_RVALID = Output(Bool())
+    val control_S_AXI_RREADY = Input(Bool())
 
     ////////////////////
     // Memory Manager
@@ -123,35 +124,35 @@ class mosaic (
     //     val s_axi_rid =     Input(UInt(S_AXI_ID_SZ.W))
     //     val s_axi_rresp =   Input(UInt(S_AXI_RSP_SZ.W))
 
-      //     val clk_memory =        Input(Clock())
-      //     val clk_memory_rst =    Input(Reset())
-      // }
+    //     val clk_memory =        Input(Clock())
+    //     val clk_memory_rst =    Input(Reset())
+    // }
 
     ////////////////////
     // Metadata
     ////////////////////
-    val notify_in_metadata_in_VALID = Input(Bool())
-    val notify_in_metadata_in_DATA = Input(UInt(128.W))
+    val notify_in_metadata_in_VALID   = Input(Bool())
+    val notify_in_metadata_in_DATA    = Input(UInt(128.W))
     val notify_out_metadata_out_VALID = Output(Bool())
-    val notify_out_metadata_out_DATA = Output(UInt(128.W))
+    val notify_out_metadata_out_DATA  = Output(UInt(128.W))
 
     ////////////////////
     // Clock and Reset
     ////////////////////
-    val clk_line_rst = Input(Reset())
-    val clk_line = Input(Clock())
-    val clk_control_rst = Input(Reset())
-    val clk_control = Input(Clock())
+    val clk_line_rst      = Input(Reset())
+    val clk_line          = Input(Clock())
+    val clk_control_rst   = Input(Reset())
+    val clk_control       = Input(Clock())
     val enable_processing = Input(Bool())
     val internal_rst_done = Output(Bool())
   })
 
   val mosaicChiselDir = System.getProperty("user.dir")
-  val mosaicVsrcDir = s"${mosaicChiselDir}/src/main/resources/mosaic/vsrc"
+  val mosaicVsrcDir   = s"${mosaicChiselDir}/src/main/resources/mosaic/vsrc"
 
   // pre-process the verilog to remove "includes" and combine into one file
   val make = s"make -C ${mosaicVsrcDir} default MOSAIC_PERL_SCRIPT=\"${mosaicConfig}\""
-  require (make.! == 0, "Failed to run preprocessing step")
+  require(make.! == 0, "Failed to run preprocessing step")
 
   // add wrapper/blackbox after it is pre-processed
   addPath(s"${mosaicVsrcDir}/mosaic.preprocessed.sv")

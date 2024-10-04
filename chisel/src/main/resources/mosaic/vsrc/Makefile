@@ -73,7 +73,7 @@ MOSAIC_VSRCS = \
 MOSAIC_WRAPPER = \
 	$(mosaic_dir)/mosaic.sv
 
-ALL_VSRCS = $(MOSAIC_VSRCS) $(MOSAIC_WRAPPER)
+ALL_VSRCS = $(MODEL_VSRCS) $(MOSAIC_VSRCS) $(MOSAIC_WRAPPER)
 
 build: $(perl_script_dir)/$(MOSAIC_PERL_SCRIPT).pl
 	cd $(perl_script_dir) && \
@@ -102,4 +102,4 @@ $(PREPROC_VERILOG): build $(ALL_VSRCS)
 
 clean:
 	rm -rf $(PREPROC_VERILOG)
-	cd $(perl_script_dir) && ./clean_up.sh
+	-cd $(perl_script_dir) && ./clean_up.sh

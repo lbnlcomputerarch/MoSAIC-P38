@@ -79,7 +79,9 @@ def process_helper(in_fname, out_f, inc_dirs, replaced_includes):
             out_f.write(line)
             continue
         if match.group(1) in replaced_includes:
-            print_info("Skipping duplicate include")
+            print_info(
+                f"Skipping duplicate include for {match.group(1)}" f" at line {num}"
+            )
             continue
 
         print_info(

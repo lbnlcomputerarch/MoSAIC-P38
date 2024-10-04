@@ -2,10 +2,12 @@ BUILD_DIR = ./build
 
 PRJ = mosaic
 
+default: verilog
+
 test:
 	mill -i $(PRJ).test
 
-verilog:
+verilog: reformat
 	$(call git_commit, "generate verilog")
 	mkdir -p $(BUILD_DIR)
 	mill -i $(PRJ).runMain Elaborate --target-dir $(BUILD_DIR)
@@ -27,6 +29,7 @@ idea:
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	cd src/main/resources/mosaic/vsrc && $(MAKE) clean
 
 .PHONY: test verilog help reformat checkformat clean
 
