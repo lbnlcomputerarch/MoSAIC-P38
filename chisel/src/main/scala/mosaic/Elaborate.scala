@@ -1,5 +1,6 @@
 object Elaborate extends App {
   val firtoolOptions = Array(
+    "-disable-all-randomization",
     "--lowering-options=" + List(
       // make yosys happy
       // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md

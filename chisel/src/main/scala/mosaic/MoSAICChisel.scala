@@ -98,11 +98,21 @@ class MoSAICChisel extends Module {
 
 object Main extends App {
   println(
-    ChiselStage.emitSystemVerilog(
+    ChiselStage.emitSystemVerilogFile(
       gen = new MoSAICChisel(),
+      args = Array(
+        "--target-dir",
+        "build/"
+      ),
       firtoolOpts = Array(
         "-disable-all-randomization",
-        "-strip-debug-info"
+        "--lowering-options=" + List(
+          // make yosys happy
+          // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
+          "disallowLocalVariables",
+          "disallowPackedArrays",
+          "locationInfoStyle=wrapInAtSquareBracket"
+        ).reduce(_ + "," + _)
       )
     )
   )
