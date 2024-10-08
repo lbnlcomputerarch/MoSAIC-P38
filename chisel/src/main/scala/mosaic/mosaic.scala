@@ -1,6 +1,7 @@
 package mosaic
 
 import sys.process._
+import scala.io.Source
 
 import chisel3._
 import chisel3.util.HasBlackBoxPath
@@ -9,7 +10,7 @@ import chisel3.experimental._ // To enable experimental features
 class mosaic(
   bw: Int = 32,
   // ddr4_ctrl: Boolean = false
-  mosaicConfig: String = s"mosaic_2x2_firesim")
+  mosaicConfig: String = s"mosaic_2x2_ddr4_pkt_firesim")
     extends BlackBox(
       Map(
         "BW" -> IntParam(bw)
@@ -149,9 +150,20 @@ class mosaic(
 
   val mosaicChiselDir = System.getProperty("user.dir")
   val mosaicVsrcDir   = s"${mosaicChiselDir}/src/main/resources/mosaic/vsrc"
+  val mosaicFileList  = s"${mosaicChiselDir}/../icarus/file_list.txt"
+
+  val fileList = Source
+    .fromFile(mosaicFileList)
+    .getLines()
+    .toList
+    .filter(_.nonEmpty)
+    .filterNot(l => l.startsWith("#"))
+    .filterNot(l => l.contains("Testbench"))
+    .map(f => mosaicChiselDir + "/" + f)
 
   // pre-process the verilog to remove "includes" and combine into one file
-  val make = s"make -C ${mosaicVsrcDir} default MOSAIC_PERL_SCRIPT=\"${mosaicConfig}\""
+  val make =
+    s"make -C ${mosaicVsrcDir} default MOSAIC_PERL_SCRIPT=\"${mosaicConfig}\" ALL_VSRCS=\"${fileList.mkString(" ")}\""
   require(make.! == 0, "Failed to run preprocessing step")
 
   // add wrapper/blackbox after it is pre-processed
