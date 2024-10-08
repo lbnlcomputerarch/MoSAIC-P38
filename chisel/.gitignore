@@ -27,3 +27,6 @@ target
 
 # Preprocessed Verilog
 *.preprocessed.sv
+
+# Metals
+.bloop
