@@ -8,9 +8,8 @@ import chisel3.util.HasBlackBoxPath
 import chisel3.experimental._ // To enable experimental features
 
 class mosaic(
-  bw: Int = 32,
-  // ddr4_ctrl: Boolean = false
-  mosaicConfig: String = s"mosaic_2x2_ddr4_pkt_firesim")
+  bw:           Int    = 32,
+  mosaicConfig: String = "mosaic_2x2_firesim")
     extends BlackBox(
       Map(
         "BW" -> IntParam(bw)
@@ -157,9 +156,9 @@ class mosaic(
     .getLines()
     .toList
     .filter(_.nonEmpty)
-    .filterNot(l => l.startsWith("#"))
-    .filterNot(l => l.contains("Testbench"))
-    .map(f => mosaicChiselDir + "/" + f)
+    .filterNot(_.startsWith("#"))
+    .filterNot(_.contains("Testbench"))
+    .map(mosaicChiselDir + "/" + _)
 
   // pre-process the verilog to remove "includes" and combine into one file
   val make =
