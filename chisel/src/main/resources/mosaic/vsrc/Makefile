@@ -6,6 +6,7 @@ base_dir=$(abspath ../../../../../..)
 vsrc_dir=$(abspath .)
 mosaic_dir=$(base_dir)/src
 mosaic_build_dir=$(base_dir)/build
+mosaic_icarus_dir=$(base_dir)/icarus
 mosaic_tb_dir=$(mosaic_dir)/Testbench
 models_dir=$(base_dir)/models
 perl_script_dir=$(base_dir)/tools/generate
@@ -42,4 +43,5 @@ $(PREPROC_VERILOG): build $(ALL_VSRCS)
 
 clean:
 	rm -rf $(PREPROC_VERILOG)
+	rm -rf $(mosaic_icarus_dir)/file_list.txt
 	-cd $(perl_script_dir) && ./clean_up.sh

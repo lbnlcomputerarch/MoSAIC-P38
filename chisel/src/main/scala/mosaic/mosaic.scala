@@ -151,6 +151,10 @@ class mosaic(
   val mosaicVsrcDir   = s"${mosaicChiselDir}/src/main/resources/mosaic/vsrc"
   val mosaicFileList  = s"${mosaicChiselDir}/../icarus/file_list.txt"
 
+  val perlMake =
+    s"make -C ${mosaicVsrcDir} build MOSAIC_PERL_SCRIPT=\"${mosaicConfig}\""
+  require(perlMake.! == 0, "Failed to run MoSAIC Perl Build step")
+
   val fileList = Source
     .fromFile(mosaicFileList)
     .getLines()
