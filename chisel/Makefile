@@ -28,7 +28,7 @@ idea:
 	mill -i mill.idea.GenIdea/idea
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR) ./out
 	cd src/main/resources/mosaic/vsrc && $(MAKE) clean
 
 .PHONY: test verilog help reformat checkformat clean
