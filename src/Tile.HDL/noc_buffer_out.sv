@@ -35,6 +35,8 @@
 `include "global_defines.sv"
 
 module noc_buffer_out#(
+   parameter BW = 32,
+   parameter BWB = BW/8,
    parameter ADDR_W           = 8,
    parameter USE_IP           = 0
 )(
@@ -45,21 +47,23 @@ module noc_buffer_out#(
    input  logic        clk_out_rst_low,
    //- Input Interface
    (*mark_debug = "true" *) input  logic        stream_in_TVALID,
-   (*mark_debug = "true" *) input  logic [31:0] stream_in_TDATA,
-   (*mark_debug = "true" *) input  logic [ 3:0] stream_in_TKEEP, 
+   (*mark_debug = "true" *) input  logic [BW-1:0] stream_in_TDATA,
+   (*mark_debug = "true" *) input  logic [BWB-1:0] stream_in_TKEEP, 
    (*mark_debug = "true" *) input  logic        stream_in_TLAST,
    (*mark_debug = "true" *) output logic        stream_in_TREADY,
    //- Output Interface
    (*mark_debug = "true" *) output logic        stream_out_TVALID,
-   (*mark_debug = "true" *) output logic [31:0] stream_out_TDATA,
-   (*mark_debug = "true" *) output logic [ 3:0] stream_out_TKEEP, 
+   (*mark_debug = "true" *) output logic [BW-1:0] stream_out_TDATA,
+   (*mark_debug = "true" *) output logic [BWB-1:0] stream_out_TKEEP, 
    (*mark_debug = "true" *) output logic        stream_out_TLAST,
    (*mark_debug = "true" *) input  logic        stream_out_TREADY
 );
 
+localparam DATA_W            = BW+BWB+1;
 
-logic [36:0] din;
-logic [36:0] dout;
+
+logic [DATA_W-1:0] din;
+logic [DATA_W-1:0] dout;
 logic        wr_en;
 logic        rd_en;
 logic        full;
@@ -147,9 +151,9 @@ always @(*) begin
    endcase
 end
 
-assign stream_out_TLAST  = dout[36];
-assign stream_out_TDATA  = dout[31:0];
-assign stream_out_TKEEP  = dout[35:32];
+assign stream_out_TLAST  = dout[BW+BWB];
+assign stream_out_TDATA  = dout[BW-1:0];
+assign stream_out_TKEEP  = dout[BW+BWB-1:BW];
 
 generate
    if (USE_IP == 1) begin
@@ -168,7 +172,6 @@ generate
       );
    end else begin
 
-      localparam DATA_W            = 37;
       localparam FIFO_READ_LATENCY = 1;
       localparam CDC_SYNC_STAGES   = 2;
       localparam FIFO_WRITE_DEPTH  = 1 << ADDR_W;

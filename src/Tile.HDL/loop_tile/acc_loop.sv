@@ -25,15 +25,19 @@
 // Author      : Patricia Gonzalez-Guerrero
 // Date        : Sept 29 2022
 // Description : Accelerator that sends back every
-//                packet.
+//               packet.
 // File        : acc_loop.sv
 ////////////////////////////////////////////////
 
 `timescale 1 ps/ 1 ps
 
 module acc_loop#(
-   parameter OFFSET_SZ      = 12,
-   parameter XY_SZ          =  3
+   parameter BW        = 32,
+   parameter BWB       = BW/8,
+   parameter BW_AXI    = 32,
+   parameter BWB_AXI   = BW/8,  
+   parameter OFFSET_SZ = 12,
+   parameter XY_SZ     =  3
 )(
   //---Clock and Reset---//
    input  logic       clk_ctrl,
@@ -45,22 +49,22 @@ module acc_loop#(
    //---NOC interface---//
    //- Input Interface
    input  logic        stream_in_TVALID,
-   input  logic [31:0] stream_in_TDATA,
-   input  logic [ 3:0] stream_in_TKEEP, 
+   input  logic [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP, 
    input  logic        stream_in_TLAST,
    output logic        stream_in_TREADY,  
    //- Output Interface
    input  logic        stream_out_TREADY,
    output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
+   output logic  [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
    output logic        stream_out_TLAST,
   //- AXI memory interface 
    input  logic        mem_valid_axi,
-   input  logic [31:0] mem_addr_axi,
-   input  logic [31:0] mem_wdata_axi, 
+   input  logic [BW_AXI-1:0] mem_addr_axi,
+   input  logic [BW_AXI-1:0] mem_wdata_axi, 
    input  logic        mem_wstrb_axi, 
-   output logic [31:0] mem_rdata_axi
+   output logic [BW_AXI-1:0] mem_rdata_axi
 );
 
 /***************************
@@ -76,8 +80,8 @@ localparam [2:0] NOC_IDLE      = 3'd0;
 localparam [2:0] NOC_DATA      = 3'd1;
 
 logic        stream_in_TVALID_int;
-logic [31:0] stream_in_TDATA_int;
-logic [ 3:0] stream_in_TKEEP_int; 
+logic [BW-1:0] stream_in_TDATA_int;
+logic [BWB-1:0] stream_in_TKEEP_int; 
 logic        stream_in_TLAST_int;
 logic        stream_in_TREADY_int; 
 
@@ -89,13 +93,13 @@ logic [1:0] nextState3;
 
 logic noc_send;
 
-logic [31:0] noc_header_in;
-logic [31:0] next_noc_header_in;
-logic [31:0] noc_data_in;
-logic [31:0] next_noc_data_in;
+logic [BW-1:0] noc_header_in;
+logic [BW-1:0] next_noc_header_in;
+logic [BW-1:0] noc_data_in;
+logic [BW-1:0] next_noc_data_in;
 
-logic [31:0] noc_out_header;
-logic [31:0] noc_out_payload;
+logic [BW-1:0] noc_out_header;
+logic [BW-1:0] noc_out_payload;
 
 logic      [XY_SZ-1:0] noc_out_x_dest;
 logic      [XY_SZ-1:0] noc_out_y_dest;
@@ -104,7 +108,9 @@ logic      [XY_SZ-1:0] noc_out_y_dest;
 // Buffer NoC data
 //////////////////////////////
 
-noc_buffer_in noc_buffer(
+noc_buffer_in#(
+   .BW (BW)
+) noc_buffer(
    .clk_in            (clk_line),
    .clk_in_rst_high   (clk_line_rst_high),
    .clk_in_rst_low    (clk_line_rst_low),

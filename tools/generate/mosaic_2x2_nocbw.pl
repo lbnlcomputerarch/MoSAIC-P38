@@ -22,82 +22,72 @@
 #
 # *************************************************************************
 
+################################################
+# Author      : Patricia Gonzalez-Guerrero
+# Email       : lg4er@lbl.gov
+# Date        : Jan 3 2025
+# Description : 
+# This testcase is used to verify functionality 
+# of the NoC BW and BWB parameters to change the 
+# NOC bus width.
+################################################
 
-
-###########################################
-#- Do not modify
-###########################################
 
 use lib "$ENV{PWD}";
-use lib "$ENV{PWD}/../picorv_c/c_asa";
 use gen_mosaic;
-use gen_hex;
 use POSIX;
 
-#- Set hash for parameters
+###########################################
+#- Set hash for parameters: Do not modify
+###########################################
+
 %param;
-
-###########################
-# Adding new accelerators
-###########################
-
-#- Create structure to hold new types of tile (Needed)
-%new_tile;
-
-#- Pair the verilog file with an alias for each new tile (User)
-$new_tile{'asa'} = 'Tile_asa';
-
-#- Add it to the parameters (Needed)
-$param{'new_tile'} = \%new_tile;
 
 ###########################################
 #- Test case: Modify
 ###########################################
 
 #- 2x2 Tile array
-$path = "$ENV{PWD}";
-$fw_path = "$path/../picorv_c/c_asa";
 $param{'r'} = 2;
 $param{'c'} = 2;
-$c_file = "send_msg"; 
 
-@tile_array = (['pico', 'loop'],
-               ['loop', 'asa']);
+$case = 1;    # 0 uses 4 spads, 1 uses 1 spad and 1 loop
+$noc_bw = 64; # use 32 or 64
 
-$param{'firmware_path'} = $fw_path;
+if ($case == 0){
+   @tile_array = (['spad', 'spad'],
+                  ['spad', 'spad']);
+}else{
+   @tile_array = (['spad', 'loop'],
+                  ['loop', 'loop']);
+}
 
-@pico_program  = ("${c_file}32_0.hex", '',
-                                   '', '');
-
+#- Packets
+$param{'packet_file'} = "Packet_nocbw_32.axi"; 
+$param{'noc_bw'}      = $noc_bw;
+if ($param{'noc_bw'} == 64){
+   $param{'packet_file'} = "Packet_nocbw_64.axi"; 
+}else{
+   $param{'packet_file'} = "Packet_nocbw_32.axi"; 
+}
+#- No program because there are no picos
+@pico_program  = ('', '', '', '');
 #- Simulation Time
-$param{'sim_loop'} = 20000;
+$param{'sim_loop'}     = 150;
 
+#- Checkers
+#@checkers = ('check_pico_spad.sh');
 
-#- Running with Vivado
-$param{'vivado'}         = 1;
-$param{'vivado_project'} = 0;
-$param{'board'}          = 'u250';  #- u250 vs u280
-$param{'run_sim'}        = 0;
-
-#- Generate hex code
-chdir $fw_path or die "$!. $fw_path\n";
-%param_h;
-$param_h{'c_code'} = $c_file;
-$param_h{'r'}      = $param{'r'}; 
-$param_h{'c'}      = $param{'c'};             
-$param_h{'keep'}   = 1; 
-$param_h{'clean'}  = 1;
-$param_h{'tile_array'} = \@tile_array;
-gen_code(\%param_h);
-chdir $path or die "$!. $path\n";
+#- Running with Icarus
+$param{'run_sim'} = 1;
 
 ###########################################
-#- Generate: Do not modify
+#- Generate: Do not modify  
 ###########################################
 
-$param{'testcase'}     = $0;
-$param{'tile_array'}   = \@tile_array;
-$param{'pico_program'} = \@pico_program;
+$param{'checkers'} = \@checkers;
+$param{'testcase'} = $0;
+$param{'tile_array'} = \@tile_array;
+$param{'pico_program'} = \@pico_program; 
 
 gen_all(\%param);
-

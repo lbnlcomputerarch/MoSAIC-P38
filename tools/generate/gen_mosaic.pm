@@ -502,10 +502,11 @@ sub check_params{
   }
 
   #- Packets path
-  if (exists $param{'packet_path'}){ #- Directory where the simulation is
+  if (exists $param{'packet_path'}){ #- Directory where the packets are
   }else{
     $param{'packet_path'} = "$param{'mosaic_path'}/src/Testbench/packets";
   }
+
   if (-e $param{'launch_path'}){
   }else{
     die "ERROR: Directory $param{'packet_path'} does not exist\n";
@@ -619,6 +620,14 @@ sub check_params{
       $param{'noc_buffer_addr_w'} = 8;
    }
 
+   
+   if (exists $param{'noc_bw'}){  #- NOC Bus width
+      print "INFO: NoC bus width is set to $param{'noc_bw'}.\n";
+   }else{
+      $param{'noc_bw'} = 32;
+      print "INFO: NoC bus width is set to 32 by default.\n";
+   }
+
 
    if (exists $param{'instruction_mem'}){  #- Cache size 
    }else{
@@ -670,7 +679,8 @@ sub gen_tiles{
     }
     print $FH "   $mod#(
       .AXI_ADDR (AXI_OUTADR),
-      .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W)
+      .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W),
+      .BW                (BW)
     ) tile_inst(
       .plain_start_of_processing	 (sop_plain_start_of_processing),
       .stream_in_TVALID            (stream_in_TVALID[i*COL+j]),
@@ -755,6 +765,7 @@ sub gen_global_defines{
   print $FH "\`define ROW $param{'r'}\n";
   print $FH "\`define COL $param{'c'}\n";
   print $FH "\`define NOC_BUFFER_ADDR_W $param{'noc_buffer_addr_w'}\n";
+  print $FH "\`define NOC_BW $param{'noc_bw'}\n";
 
   print $FH "\`define SIM_ASSERT_CHK 0\n"; #FIXME: This is a problem
   print $FH "\`define LOAD_PICO_FW \"$param{load_fw_file}\"\n";

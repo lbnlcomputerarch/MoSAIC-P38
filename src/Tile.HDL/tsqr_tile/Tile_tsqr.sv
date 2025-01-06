@@ -34,6 +34,8 @@
 module Tile_tsqr#(
    parameter BW  = 32,
    parameter BWB = BW/8,
+   parameter BW_AXI = 32,
+   parameter BWB_AXI = BW/8,
    parameter AXI_ADDR = 8,
    parameter NOC_BUFFER_ADDR_W = 8
 )(
@@ -57,8 +59,8 @@ module Tile_tsqr#(
 	(* dont_touch = "true" *) input  logic [AXI_ADDR-1:0] control_S_AXI_AWADDR,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_AWVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_AWREADY,
-	(* dont_touch = "true" *) input  logic       [BW-1:0] control_S_AXI_WDATA,
-	(* dont_touch = "true" *) input  logic      [BWB-1:0] control_S_AXI_WSTRB,
+	(* dont_touch = "true" *) input  logic   [BW_AXI-1:0] control_S_AXI_WDATA,
+	(* dont_touch = "true" *) input  logic  [BWB_AXI-1:0] control_S_AXI_WSTRB,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_WVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_WREADY,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_BREADY,
@@ -68,12 +70,14 @@ module Tile_tsqr#(
 	(* dont_touch = "true" *) input  logic                control_S_AXI_ARVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_ARREADY,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_RREADY,
-	(* dont_touch = "true" *) output logic       [BW-1:0] control_S_AXI_RDATA,
+	(* dont_touch = "true" *) output logic   [BW_AXI-1:0] control_S_AXI_RDATA,
 	(* dont_touch = "true" *) output logic          [1:0] control_S_AXI_RRESP,
 	(* dont_touch = "true" *) output logic                control_S_AXI_RVALID
 );
 
 Tile_t#(
+   .BW (BW),
+   .BW_AXI (BW_AXI),
    .TYPE ("TSQR"),
    .AXI_ADDR (AXI_ADDR),
    .NOC_BUFFER_ADDR_W(NOC_BUFFER_ADDR_W)

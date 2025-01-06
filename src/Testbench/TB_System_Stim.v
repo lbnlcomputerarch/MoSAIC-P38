@@ -59,6 +59,9 @@ module TB_System_Stim (
 	stream_in_packet_in_TDATA
 );
 
+localparam BW  = `NOC_BW;
+localparam BWB = BW/8;
+
 input file_done ;
 input fw_done ;
 input rst ;
@@ -69,18 +72,18 @@ output [127:0] notify_in_metadata_in ;
 input stream_in_packet_in_TREADY ;
 output stream_in_packet_in_TVALID ;
 output stream_in_packet_in_TLAST ;
-output [3:0] stream_in_packet_in_TKEEP ;
-output [31:0] stream_in_packet_in_TDATA ;
+output [BWB-1:0] stream_in_packet_in_TKEEP ;
+output [BW-1:0] stream_in_packet_in_TDATA ;
 
-reg [31:0] fd_tup ;
+//reg [31:0] fd_tup ;
 reg [31:0] fd_pkt ;
 reg stim_eof ;
 reg tuple_in_valid ;
 reg [127:0] notify_in_metadata_in ;
 reg stream_in_packet_in_TVALID ;
 reg stream_in_packet_in_TLAST ;
-reg [3:0] stream_in_packet_in_TKEEP ;
-reg [31:0] stream_in_packet_in_TDATA ;
+reg [BWB-1:0] stream_in_packet_in_TKEEP ;
+reg [BW-1:0] stream_in_packet_in_TDATA ;
 reg SOP ;
 
 
@@ -104,7 +107,7 @@ always @( posedge file_done ) begin
 end
 
 always @( posedge clk_n ) begin
-   tuple_in_valid <= 0 ;
+   //tuple_in_valid <= 0 ;
 	if ( rst ) begin
 	   SOP <= 1 ;
 		stim_eof <= 0 ;
@@ -114,7 +117,7 @@ always @( posedge clk_n ) begin
 		stream_in_packet_in_TDATA <= 0 ;
 	end else  begin
 		if ( ( ( stream_in_packet_in_TREADY && fw_done ) && ~stim_eof ) ) begin
-		   if ( 32'h4 != $fscanf(fd_pkt, "%x %x %x %x",stream_in_packet_in_TVALID, stream_in_packet_in_TLAST, stream_in_packet_in_TKEEP, stream_in_packet_in_TDATA) ) begin
+		   if ( 'h4 != $fscanf(fd_pkt, "%x %x %x %x",stream_in_packet_in_TVALID, stream_in_packet_in_TLAST, stream_in_packet_in_TKEEP, stream_in_packet_in_TDATA) ) begin
 				stim_eof <= 1 ;
 				$display("[%0t]  INFO: finished packet stimulus file", $time);
 				stream_in_packet_in_TLAST <= 0 ;

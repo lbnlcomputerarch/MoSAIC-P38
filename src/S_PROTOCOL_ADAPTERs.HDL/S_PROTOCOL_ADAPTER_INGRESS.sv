@@ -33,21 +33,24 @@
 
 `timescale 1 ps / 1 ps
 
-module S_PROTOCOL_ADAPTER_INGRESS (
-   input  logic        clk_line,
-   input  logic        rst,
-   input  logic        backpressure_in,
-   output logic        backpressure_out,
-   input  logic        stream_in_TLAST,
-   input  logic        stream_in_TVALID,
-   output logic        stream_in_TREADY,
-   input  logic [31:0] stream_in_TDATA,
-   input  logic  [4:0] stream_in_TKEEP,
-   output logic        stream_out_TLAST,
-   output logic        stream_out_TVALID,
-   input  logic        stream_out_TREADY,
-   output logic [31:0] stream_out_TDATA,
-   output logic  [3:0] stream_out_TKEEP
+module S_PROTOCOL_ADAPTER_INGRESS#(
+   parameter BW  = 32,
+   parameter BWB = BW/8
+) (
+   input  logic           clk_line,
+   input  logic           rst,
+   input  logic           backpressure_in,
+   output logic           backpressure_out,
+   input  logic           stream_in_TLAST,
+   input  logic           stream_in_TVALID,
+   output logic           stream_in_TREADY,
+   input  logic  [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP,
+   output logic           stream_out_TLAST,
+   output logic           stream_out_TVALID,
+   input  logic           stream_out_TREADY,
+   output logic  [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP
 );
 
 assign stream_out_TVALID = stream_in_TVALID;

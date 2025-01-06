@@ -51,8 +51,10 @@ module mosaic #(
    parameter S_AXI_PRT_SZ = 3,  // RESPONSE
    parameter S_AXI_QOS_SZ = 4,  // RESPONSE
    `endif
-   parameter BW  =   32,   //- Data width
-   parameter BWB = BW/8    //- Width of TKEEP and write strobes
+   parameter BW          = `NOC_BW,
+   parameter BWB         = BW/8,    //- Width of TKEEP and write strobes
+   parameter BW_AXI      = 32,      //- Data width
+   parameter BWB_AXI     = BW_AXI/8 //- Width of TKEEP and write strobes
 )(
   //////////////////////
   // Packet interface
@@ -77,8 +79,8 @@ module mosaic #(
 	input  logic           control_S_AXI_AWVALID,
 	output logic           control_S_AXI_AWREADY,
   //Write
-	input  logic  [BW-1:0] control_S_AXI_WDATA,
-	input  logic [BWB-1:0] control_S_AXI_WSTRB,
+	input  logic  [BW_AXI-1:0] control_S_AXI_WDATA,
+	input  logic [BWB_AXI-1:0] control_S_AXI_WSTRB,
 	input  logic           control_S_AXI_WVALID,
 	output logic           control_S_AXI_WREADY,
   //Write Response
@@ -90,7 +92,7 @@ module mosaic #(
 	input  logic           control_S_AXI_ARVALID,
 	output logic           control_S_AXI_ARREADY,
   //Read Response
-	output logic  [BW-1:0] control_S_AXI_RDATA,
+	output logic  [BW_AXI-1:0] control_S_AXI_RDATA,
 	output logic     [1:0] control_S_AXI_RRESP,
 	output logic           control_S_AXI_RVALID,
 	input  logic           control_S_AXI_RREADY,
@@ -227,8 +229,8 @@ logic [BWB-1:0] stream_out_gatherer_S_PROTOCOL_ADAPTER_EGRESS_TKEEP;
 logic [AXI_OUTADR-1:0] tile_S_AXI_AWADDR  [0:AXI_TILES-1];
 logic  [AXI_TILES-1:0] tile_S_AXI_AWVALID;
 logic  [AXI_TILES-1:0] tile_S_AXI_AWREADY;
-logic         [BW-1:0] tile_S_AXI_WDATA [0:AXI_TILES-1];
-logic        [BWB-1:0] tile_S_AXI_WSTRB [0:AXI_TILES-1];
+logic     [BW_AXI-1:0] tile_S_AXI_WDATA [0:AXI_TILES-1];
+logic    [BWB_AXI-1:0] tile_S_AXI_WSTRB [0:AXI_TILES-1];
 logic  [AXI_TILES-1:0] tile_S_AXI_WVALID;
 logic  [AXI_TILES-1:0] tile_S_AXI_WREADY;
 logic            [1:0] tile_S_AXI_BRESP   [0:AXI_TILES-1];
@@ -237,17 +239,17 @@ logic  [AXI_TILES-1:0] tile_S_AXI_BREADY;
 logic [AXI_OUTADR-1:0] tile_S_AXI_ARADDR  [0:AXI_TILES-1];
 logic  [AXI_TILES-1:0] tile_S_AXI_ARVALID;
 logic  [AXI_TILES-1:0] tile_S_AXI_ARREADY;
-logic         [BW-1:0] tile_S_AXI_RDATA   [0:AXI_TILES-1];
+logic     [BW_AXI-1:0] tile_S_AXI_RDATA   [0:AXI_TILES-1];
 logic            [1:0] tile_S_AXI_RRESP   [0:AXI_TILES-1];
 logic  [AXI_TILES-1:0] tile_S_AXI_RVALID;
 logic  [AXI_TILES-1:0] tile_S_AXI_RREADY;
 
 logic [AXI_OUTADR*AXI_TILES-1:0] tile_S_AXI_AWADDR_v;
-logic         [BW*AXI_TILES-1:0] tile_S_AXI_WDATA_v;
-logic        [BWB*AXI_TILES-1:0] tile_S_AXI_WSTRB_v;
+logic     [BW_AXI*AXI_TILES-1:0] tile_S_AXI_WDATA_v;
+logic    [BWB_AXI*AXI_TILES-1:0] tile_S_AXI_WSTRB_v;
 logic          [2*AXI_TILES-1:0] tile_S_AXI_BRESP_v;
 logic [AXI_OUTADR*AXI_TILES-1:0] tile_S_AXI_ARADDR_v;
-logic         [BW*AXI_TILES-1:0] tile_S_AXI_RDATA_v;
+logic     [BW_AXI*AXI_TILES-1:0] tile_S_AXI_RDATA_v;
 logic          [2*AXI_TILES-1:0] tile_S_AXI_RRESP_v;
 
 //- NOC
@@ -307,8 +309,8 @@ generate
     for (j=0; j<COL; j=j+1) begin : grid_col
 
       assign tile_S_AXI_AWADDR[i*COL+j]= tile_S_AXI_AWADDR_v[(AXI_OUTADR*((i*COL+j)+1))-1:AXI_OUTADR*(i*COL+j)]; 
-      assign tile_S_AXI_WDATA[i*COL+j] = tile_S_AXI_WDATA_v[(BW*((i*COL+j)+1))-1:BW*(i*COL+j)]; 
-      assign tile_S_AXI_WSTRB[i*COL+j] = tile_S_AXI_WSTRB_v[(BWB*((i*COL+j)+1))-1:BWB*(i*COL+j)]; 
+      assign tile_S_AXI_WDATA[i*COL+j] = tile_S_AXI_WDATA_v[(BW_AXI*((i*COL+j)+1))-1:BW_AXI*(i*COL+j)]; 
+      assign tile_S_AXI_WSTRB[i*COL+j] = tile_S_AXI_WSTRB_v[(BWB_AXI*((i*COL+j)+1))-1:BWB_AXI*(i*COL+j)]; 
       assign tile_S_AXI_BRESP_v[(2*((i*COL+j)+1))-1:2*(i*COL+j)] = tile_S_AXI_BRESP[i*COL+j]; 
       assign tile_S_AXI_ARADDR[i*COL+j]= tile_S_AXI_ARADDR_v[(AXI_OUTADR*((i*COL+j)+1))-1:AXI_OUTADR*(i*COL+j)]; 
       assign tile_S_AXI_RDATA_v[(BW*((i*COL+j)+1))-1:BW*(i*COL+j)]=tile_S_AXI_RDATA[i*COL+j]; 
@@ -444,6 +446,7 @@ SOP sop(
 	.rst                 	         (clk_line_rst_high));
 
 Dispatcher#(
+  .BW  (BW),
   .END (ROW)
 ) dispatcher(
 	.stream_in_packet_TVALID	  (S_PROTOCOL_ADAPTER_INGRESS_stream_in_packet_in_TVALID),
@@ -462,7 +465,9 @@ Dispatcher#(
    .clk_line_rst_low         	  (clk_line_rst_low),
    .clk_line_rst_high           (clk_line_rst_high));
 
-Gatherer gatherer(
+Gatherer#(
+   .BW (BW)
+) gatherer(
 	.stream_in_packet_TVALID	     (stream_in_gatherer_TVALID),  // In [3:0]
 	.stream_in_packet_TREADY	     (stream_in_gatherer_TREADY),  // Out [3:0]
 	.stream_in_packet_TDATA	       (stream_in_gatherer_TDATA_v), // In [127:0]
@@ -479,7 +484,9 @@ Gatherer gatherer(
 	.rst                      	   (clk_line_rst_high));
 
 
-S_PROTOCOL_ADAPTER_INGRESS S_PROTOCOL_ADAPTER_INGRESS(
+S_PROTOCOL_ADAPTER_INGRESS#(
+   .BW (BW)
+)S_PROTOCOL_ADAPTER_INGRESS(
 	.stream_in_TVALID    	(stream_in_packet_in_TVALID), 
 	.stream_in_TREADY    	(stream_in_packet_in_TREADY), //Out
 	.stream_in_TDATA     	(stream_in_packet_in_TDATA),  
@@ -497,7 +504,9 @@ S_PROTOCOL_ADAPTER_INGRESS S_PROTOCOL_ADAPTER_INGRESS(
 	.rst                 	( clk_line_rst_high )
 );
 
-S_PROTOCOL_ADAPTER_EGRESS S_PROTOCOL_ADAPTER_EGRESS (
+S_PROTOCOL_ADAPTER_EGRESS#(
+   .BW (BW)
+) S_PROTOCOL_ADAPTER_EGRESS (
 	.stream_in_TVALID    	(stream_out_gatherer_S_PROTOCOL_ADAPTER_EGRESS_TVALID),
 	.stream_in_TREADY    	(stream_out_gatherer_S_PROTOCOL_ADAPTER_EGRESS_TREADY), // Out
 	.stream_in_TDATA     	(stream_out_gatherer_S_PROTOCOL_ADAPTER_EGRESS_TDATA),
@@ -561,8 +570,8 @@ S_CONTROLLER_USS#(
 `ifdef DDR4_CTRL
 
   assign tile_S_AXI_AWADDR[TILES]= tile_S_AXI_AWADDR_v[(AXI_OUTADR*(TILES+1))-1:AXI_OUTADR*TILES]; 
-  assign tile_S_AXI_WDATA[TILES] = tile_S_AXI_WDATA_v[(BW*(TILES+1))-1:BW*TILES]; 
-  assign tile_S_AXI_WSTRB[TILES] = tile_S_AXI_WSTRB_v[(BWB*(TILES+1))-1:BWB*TILES]; 
+  assign tile_S_AXI_WDATA[TILES] = tile_S_AXI_WDATA_v[(BW_AXI*(TILES+1))-1:BW_AXI*TILES]; 
+  assign tile_S_AXI_WSTRB[TILES] = tile_S_AXI_WSTRB_v[(BWB_AXI*(TILES+1))-1:BWB_AXI*TILES]; 
   assign tile_S_AXI_BRESP_v[(2*(TILES+1))-1:2*TILES] = tile_S_AXI_BRESP[TILES]; 
   assign tile_S_AXI_ARADDR[TILES]= tile_S_AXI_ARADDR_v[(AXI_OUTADR*(TILES+1))-1:AXI_OUTADR*TILES]; 
   assign tile_S_AXI_RDATA_v[(BW*(TILES+1))-1:BW*TILES]=tile_S_AXI_RDATA[TILES]; 

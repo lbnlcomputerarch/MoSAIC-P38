@@ -34,24 +34,27 @@
 `timescale 1 ps/ 1 ps
 
 module grant_out#(
+   parameter BW       = 32,
+   parameter BWB      = BW/8,
+   parameter CHANNELS = 4,
    parameter [2:0] ID = 0
 )(
-   input  logic              clk_line,
-   input  logic              rst,
+   input  logic               clk_line,
+   input  logic               rst,
    //- {4 ports} 
-   input  logic        [3:0] stream_in_TVALID,
-   input  logic [(4*32)-1:0] stream_in_TDATA,
-   input  logic [(4* 4)-1:0] stream_in_TKEEP,
-   input  logic [(4* 1)-1:0] stream_in_TLAST, 
-   input  logic [(4* 3)-1:0] tdest,
+   input  logic         [3:0] stream_in_TVALID,
+   input  logic  [(4*BW)-1:0] stream_in_TDATA,
+   input  logic [(4*BWB)-1:0] stream_in_TKEEP,
+   input  logic  [(4* 1)-1:0] stream_in_TLAST, 
+   input  logic  [(4* 3)-1:0] tdest,
    //- 1 port
-   output logic      [31:0] stream_out_TDATA,
-   output logic       [3:0] stream_out_TKEEP,
-   output logic             stream_out_TLAST,
-   output logic             stream_out_TVALID,
-   input  logic             stream_out_TREADY,
+   output logic     [BW-1:0] stream_out_TDATA,
+   output logic    [BWB-1:0] stream_out_TKEEP,
+   output logic              stream_out_TLAST,
+   output logic              stream_out_TVALID,
+   input  logic              stream_out_TREADY,
    //- To in_dest
-   output logic       [3:0] grant
+   output logic        [3:0] grant
 );
 
 logic [3:0] request;
@@ -59,10 +62,10 @@ logic [3:0] grant_t;
 logic [1:0] port;
 logic [1:0] next_port;
 
-logic [31:0] tdata_t;
-logic  [3:0] tkeep_t;
-logic        tlast_t;
-logic        tvalid_t;
+logic [BW-1:0] tdata_t;
+logic    [3:0] tkeep_t;
+logic          tlast_t;
+logic          tvalid_t;
 
 logic [3:0] next_grant_lock;
 logic [3:0] grant_lock;
@@ -107,8 +110,8 @@ end
 logic flag;
 logic next_flag;
 
-logic [31:0] data;
-logic [31:0] next_data;
+logic [BW-1:0] data;
+logic [BW-1:0] next_data;
 
 always @(*) begin
    next_state = state;
@@ -163,10 +166,10 @@ assign tvalid_t = (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? strea
                   (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TVALID[3] | flag : 'h0;
 
 assign tdata_t =  flag ? data : 
-                  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? stream_in_TDATA[(32*1)-1:(32*0)] :
-                  (state == 0 & grant_t[1]) | (state==1 & grant_lock[1]) ? stream_in_TDATA[(32*2)-1:(32*1)] :
-                  (state == 0 & grant_t[2]) | (state==1 & grant_lock[2]) ? stream_in_TDATA[(32*3)-1:(32*2)] : 
-                  (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TDATA[(32*4)-1:(32*3)] : 'h0; 
+                  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? stream_in_TDATA[(BW*1)-1:(BW*0)] :
+                  (state == 0 & grant_t[1]) | (state==1 & grant_lock[1]) ? stream_in_TDATA[(BW*2)-1:(BW*1)] :
+                  (state == 0 & grant_t[2]) | (state==1 & grant_lock[2]) ? stream_in_TDATA[(BW*3)-1:(BW*2)] : 
+                  (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TDATA[(BW*4)-1:(BW*3)] : 'h0; 
 
 
 assign tlast_t =  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? stream_in_TLAST[0] | flag :
@@ -174,10 +177,10 @@ assign tlast_t =  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? strea
                   (state == 0 & grant_t[2]) | (state==1 & grant_lock[2]) ? stream_in_TLAST[2] | flag : 
                   (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TLAST[3] | flag : 'h0;
 
-assign tkeep_t =  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? stream_in_TKEEP[(4*1)-1:(4*0)] :
-                  (state == 0 & grant_t[1]) | (state==1 & grant_lock[1]) ? stream_in_TKEEP[(4*2)-1:(4*1)] :
-                  (state == 0 & grant_t[2]) | (state==1 & grant_lock[2]) ? stream_in_TKEEP[(4*3)-1:(4*2)] : 
-                  (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TKEEP[(4*4)-1:(4*3)] : 'h0;
+assign tkeep_t =  (state == 0 & grant_t[0]) | (state==1 & grant_lock[0]) ? stream_in_TKEEP[(BWB*1)-1:(BWB*0)] :
+                  (state == 0 & grant_t[1]) | (state==1 & grant_lock[1]) ? stream_in_TKEEP[(BWB*2)-1:(BWB*1)] :
+                  (state == 0 & grant_t[2]) | (state==1 & grant_lock[2]) ? stream_in_TKEEP[(BWB*3)-1:(BWB*2)] : 
+                  (state == 0 & grant_t[3]) | (state==1 & grant_lock[3]) ? stream_in_TKEEP[(BWB*4)-1:(BWB*3)] : 'h0;
 
 always @(posedge clk_line) begin
    if (~rst) begin
@@ -201,6 +204,8 @@ endmodule
 module in_dest#(
    //- For dispatcher
    parameter DISPATCHER = 0,
+   parameter BW  = 32,
+   parameter BWB = BW/8,
    parameter END = 0,
    //- For bigger switches
    parameter BIG = 0,
@@ -216,14 +221,14 @@ module in_dest#(
    //- 
    input  logic             stream_in_TVALID,
    input  logic             stream_in_TLAST,
-   input  logic      [31:0] stream_in_TDATA,
-   input  logic       [3:0] stream_in_TKEEP,
+   input  logic    [BW-1:0] stream_in_TDATA,
+   input  logic   [BWB-1:0] stream_in_TKEEP,
    input  logic       [4:0] grant,
    //-
    output  logic            stream_in_TVALID_d,
    output  logic            stream_in_TLAST_d,
-   output  logic     [31:0] stream_in_TDATA_d,
-   output  logic      [3:0] stream_in_TKEEP_d,
+   output  logic   [BW-1:0] stream_in_TDATA_d,
+   output  logic  [BWB-1:0] stream_in_TKEEP_d,
    //- 
    output logic       [2:0] tdest,
    output logic             stream_in_TREADY
@@ -236,9 +241,10 @@ localparam [2:0] RIGHT  = 2;
 localparam [2:0] BOTTOM = 1;
 localparam [2:0] NULL   = 0;
 
+localparam BUFFER_DATA_SZ = BWB + BW + 1 + 3;
 
-logic [39:0] dout;
-logic [39:0] dout2;
+logic [BUFFER_DATA_SZ-1:0] dout;
+logic [BUFFER_DATA_SZ-1:0] dout2;
 
 assign stream_in_TREADY = ~full;
 
@@ -258,12 +264,12 @@ end
 assign flag = granted_d;
 
 logic [2:0] tdest_n;
-assign tdest = stream_in_TVALID_d ? flag ? dout2[39:37] : dout[39:37] : 'h0;
-assign tdest_n = stream_in_TVALID_d & flag ? dout2[39:37] : dout[39:37];
+assign tdest   = stream_in_TVALID_d ? flag ? dout2[BW+BWB+3:BW+BWB+1] : dout[BW+BWB+3:BW+BWB+1] : 'h0;
+assign tdest_n = stream_in_TVALID_d & flag ? dout2[BW+BWB+3:BW+BWB+1] : dout[BW+BWB+3:BW+BWB+1];
 
-assign stream_in_TDATA_d = stream_in_TVALID_d & flag ? dout2[31:0]  : dout[31:0];
-assign stream_in_TKEEP_d = stream_in_TVALID_d & flag ? dout2[35:32] : dout[35:32];
-assign stream_in_TLAST_d = stream_in_TVALID_d & flag ? dout2[36]    : dout[36];
+assign stream_in_TDATA_d = stream_in_TVALID_d & flag ? dout2[BW-1:0]  : dout[BW-1:0];
+assign stream_in_TKEEP_d = stream_in_TVALID_d & flag ? dout2[BW+BWB-1:BW] : dout[BW+BWB-1:BW];
+assign stream_in_TLAST_d = stream_in_TVALID_d & flag ? dout2[BW+BWB] : dout[BW+BWB];
 
 
 logic [2:0] tdest_t;
@@ -337,7 +343,9 @@ assign granted = tdest_n == LEFT  & grant[3] | tdest_n == TOP    & grant[2] |
                  tdest_n == RIGHT & grant[1] | tdest_n == BOTTOM & grant[0] |
                  tdest_n == LOCAL & grant[4];
 
-buffer_0 buffer_0(
+buffer_0#(
+   .DATA_SZ (BUFFER_DATA_SZ)
+) buffer_0(
    .clk     (clk_line),
    .rst     (rst),
    .wr_en   (stream_in_TVALID & ~full),

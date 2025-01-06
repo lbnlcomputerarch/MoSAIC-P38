@@ -33,39 +33,24 @@
 
 `timescale 1 ps / 1 ps
 
-module S_PROTOCOL_ADAPTER_EGRESS (
-   clk_line,
-   rst,
-   stream_in_TLAST,
-   stream_in_TVALID,
-   stream_in_TREADY,
-   stream_in_TDATA,
-   stream_in_TKEEP,
-   stream_out_TLAST,
-   stream_out_TVALID,
-   stream_out_TREADY,
-   stream_out_TDATA,
-   stream_out_TKEEP
+module S_PROTOCOL_ADAPTER_EGRESS #(
+   parameter BW  = 32,
+   parameter BWB = BW/8
+)(
+   input  logic           clk_line,
+   input  logic           rst,
+   input  logic           stream_in_TLAST,
+   input  logic           stream_in_TVALID,
+   output logic           stream_in_TREADY,
+   input  logic  [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP,
+   output logic           stream_out_TLAST,
+   output logic           stream_out_TVALID,
+   input  logic           stream_out_TREADY,
+   output logic  [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP
 );
 
-input         clk_line;
-input         rst;
-input         stream_in_TLAST;
-input         stream_in_TVALID;
-output        stream_in_TREADY;
-input  [31:0] stream_in_TDATA;
-input   [3:0] stream_in_TKEEP;
-output        stream_out_TLAST;
-output        stream_out_TVALID;
-input         stream_out_TREADY;
-output [31:0] stream_out_TDATA;
-output  [3:0] stream_out_TKEEP;
-
-wire        stream_in_TREADY;
-reg         stream_out_TLAST;
-reg         stream_out_TVALID;
-wire [31:0] stream_out_TDATA;
-wire  [3:0] stream_out_TKEEP;
 
 assign stream_in_TREADY = stream_out_TREADY;
 

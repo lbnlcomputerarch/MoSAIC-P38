@@ -42,6 +42,8 @@ localparam ROW       = `ROW;
 localparam COL       = `COL;
 localparam TILES     = ROW*COL;
 localparam AXI_TILES = `AXI_TILES;
+localparam BW        = `NOC_BW;
+localparam BWB       = BW/8;
 
 ///////////////////////////
 //- Dump file for i-verilog
@@ -84,14 +86,14 @@ logic        control_S_AXI_RVALID;
 
 logic        stream_in_packet_in_TVALID;
 logic        stream_in_packet_in_TREADY;
-logic [31:0] stream_in_packet_in_TDATA;
-logic  [3:0] stream_in_packet_in_TKEEP;
+logic [BW-1:0] stream_in_packet_in_TDATA;
+logic  [BWB-1:0] stream_in_packet_in_TKEEP;
 logic        stream_in_packet_in_TLAST;
 
 logic        stream_out_packet_out_TVALID ;
 logic        stream_out_packet_out_TREADY ;
-logic [31:0] stream_out_packet_out_TDATA ;
-logic  [3:0] stream_out_packet_out_TKEEP ;
+logic [BW-1:0] stream_out_packet_out_TDATA ;
+logic  [BWB-1:0] stream_out_packet_out_TKEEP ;
 logic        stream_out_packet_out_TLAST ;
 
 logic         notify_in_metadata_in_VALID;

@@ -33,6 +33,8 @@
 module acc_scratchpad#(
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3,
+   parameter BW                = 32,
+   parameter BWB               = BW/8,
    parameter NOC_BUFFER_ADDR_W =  8
 )(
   //---Clock and Reset---//
@@ -46,17 +48,17 @@ module acc_scratchpad#(
    
    //---NOC interface---//
    //- Input Interface
-   input  logic        stream_in_TVALID,
-   input  logic [31:0] stream_in_TDATA,
-   input  logic [ 3:0] stream_in_TKEEP, 
-   input  logic        stream_in_TLAST,
-   output logic        stream_in_TREADY,  
+   input  logic           stream_in_TVALID,
+   input  logic  [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP, 
+   input  logic           stream_in_TLAST,
+   output logic           stream_in_TREADY,  
    //- Output Interface
-   input  logic        stream_out_TREADY,
-   output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
-   output logic        stream_out_TLAST,
+   input  logic           stream_out_TREADY,
+   output logic           stream_out_TVALID,
+   output logic  [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
+   output logic           stream_out_TLAST,
   //- AXI memory interface 
    input  logic        mem_valid_axi,
    input  logic [31:0] mem_addr_axi,
@@ -66,31 +68,32 @@ module acc_scratchpad#(
    input  logic  [7:0] rvControl
 );
 
-logic        stream_in_TVALID_int;
-logic [31:0] stream_in_TDATA_int;
-logic [ 3:0] stream_in_TKEEP_int; 
-logic        stream_in_TLAST_int;
-logic        stream_in_TREADY_int; 
+logic           stream_in_TVALID_int;
+logic  [BW-1:0] stream_in_TDATA_int;
+logic [BWB-1:0] stream_in_TKEEP_int; 
+logic           stream_in_TLAST_int;
+logic           stream_in_TREADY_int; 
 
 
 //- Memory and Memory Manager
-(*mark_debug = "true" *) logic [31:0] mm_mem_rdata;
-(*mark_debug = "true" *) logic [31:0] mm_mem_wdata;
+(*mark_debug = "true" *) logic [BW-1:0] mm_mem_rdata;
+(*mark_debug = "true" *) logic [BW-1:0] mm_mem_wdata;
 (*mark_debug = "true" *) logic [31:0] mm_mem_addr;
-(*mark_debug = "true" *) logic        mm_mem_wstrb; 
-(*mark_debug = "true" *) logic        mm_mem_valid;
+(*mark_debug = "true" *) logic          mm_mem_wstrb; 
+(*mark_debug = "true" *) logic          mm_mem_valid;
 
-logic        stream_out_TVALID_int;
-logic [31:0] stream_out_TDATA_int;
-logic [ 3:0] stream_out_TKEEP_int; 
-logic        stream_out_TLAST_int;
-logic        stream_out_TREADY_int;
+logic           stream_out_TVALID_int;
+logic  [BW-1:0] stream_out_TDATA_int;
+logic [BWB-1:0] stream_out_TKEEP_int; 
+logic           stream_out_TLAST_int;
+logic           stream_out_TREADY_int;
 
 logic rvRstN;
 
 assign rvRstN = rvControl[0]; //1'b0;
 
 noc_buffer_in#(
+   .BW (BW),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 ) noc_buffer(
    .clk_in            (clk_line),
@@ -110,7 +113,9 @@ noc_buffer_in#(
    .stream_out_TREADY (stream_in_TREADY_int)
 );
 
-noc_decoder noc_decoder(
+noc_decoder#(
+   .BW (BW)
+) noc_decoder(
    //- Clock and reset
    .clk_ctrl         (clk_ctrl),
    //.clk_ctrl_rst_low (clk_ctrl_rst_low && rvRstN), 
@@ -152,10 +157,13 @@ noc_decoder noc_decoder(
 
 logic [31:0] mm_mem_addr_short;
 assign mm_mem_addr_short = {20'h0,mm_mem_addr[OFFSET_SZ-1:0]};
-
+logic [BW-32-1:0] filler;
+assign filler = 'h0;
+logic [BW-1:0] mem_rdata_axi_t;
+assign mem_rdata_axi = mem_rdata_axi_t[31:0];
 DPRAM #(
   .ADDR_W     (32),
-  .DATA_W     (32),
+  .DATA_W     (BW),
   .MEMSIZE_KB (16)
 ) dp_ram (
   .clk   ({clk_ctrl,         clk_ctrl}),
@@ -163,14 +171,15 @@ DPRAM #(
   .en    ({mem_valid_axi, mm_mem_valid }),
   .we    ({mem_wstrb_axi, mm_mem_wstrb}),
   .addr  ({mem_addr_axi,  mm_mem_addr_short}),  
-  .din   ({mem_wdata_axi, mm_mem_wdata}),
-  .dout  ({mm_mem_rdata, mem_rdata_axi}));   //- LPGG FIXME: Does the order depend on the simulator?
+  .din   ({{filler,mem_wdata_axi}, mm_mem_wdata}),
+  .dout  ({mm_mem_rdata, mem_rdata_axi_t}));   //- LPGG FIXME: Does the order depend on the simulator?
 
 //////////////////////////////
 // Buffer NoC data
 //////////////////////////////
 
 noc_buffer_out#(
+   .BW (BW),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 ) noc_buffer_out(
    .clk_in            (clk_ctrl),

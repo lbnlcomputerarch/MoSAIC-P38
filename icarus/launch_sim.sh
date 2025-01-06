@@ -30,7 +30,7 @@
 
 ###- Test parameters
 waves=0
-waves_file='waves_aprl27_2x2.gtkw'
+waves_file='test_waves_nocbw.gtkw'
 
 testbench='tb_mosaic'
 
@@ -45,6 +45,6 @@ vvp -v ${testbench}.vvp +vcd +trace +noerror
 #- Waves up and running
 if [ $waves = 1 ] 
 then
-   open /Applications/gtkwave.app ${testbench}.vcd $waves_file &
+   gtkwave ${testbench}.vcd $waves_file &
 fi
 

@@ -45,10 +45,12 @@ module Tile_mem_mgr#(
    parameter S_AXI_RSP_SZ = 2,  // RESPONSE
    parameter S_AXI_CAC_SZ = 4,  // RESPONSE
    parameter S_AXI_PRT_SZ = 3,  // RESPONSE
-   parameter S_AXI_QOS_SZ = 4,   // RESPONSE  
-   parameter BW = 32,
-   parameter BWB = BW/8,
-   parameter AXI_ADDR = 8
+   parameter S_AXI_QOS_SZ = 4,  // RESPONSE  
+   parameter BW           = 32,
+   parameter BWB          = BW/8,
+   parameter BW_AXI       = 32,
+   parameter BWB_AXI      = BW_AXI/8,
+   parameter AXI_ADDR     = 8
 ) (
    input  logic       clk_line,     //- 250 MHz
    input  logic       clk_line_rst_high,
@@ -73,8 +75,8 @@ module Tile_mem_mgr#(
    (* dont_touch = "true" *) input  logic [AXI_ADDR-1:0] control_S_AXI_AWADDR,
    (* dont_touch = "true" *) input  logic                control_S_AXI_AWVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_AWREADY,
-   (* dont_touch = "true" *) input  logic       [BW-1:0] control_S_AXI_WDATA,
-   (* dont_touch = "true" *) input  logic      [BWB-1:0] control_S_AXI_WSTRB,
+   (* dont_touch = "true" *) input  logic   [BW_AXI-1:0] control_S_AXI_WDATA,
+   (* dont_touch = "true" *) input  logic  [BWB_AXI-1:0] control_S_AXI_WSTRB,
    (* dont_touch = "true" *) input  logic                control_S_AXI_WVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_WREADY,
    (* dont_touch = "true" *) input  logic                control_S_AXI_BREADY,
@@ -84,7 +86,7 @@ module Tile_mem_mgr#(
    (* dont_touch = "true" *) input  logic                control_S_AXI_ARVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_ARREADY,
    (* dont_touch = "true" *) input  logic                control_S_AXI_RREADY,
-   (* dont_touch = "true" *) output logic       [BW-1:0] control_S_AXI_RDATA,
+   (* dont_touch = "true" *) output logic   [BW_AXI-1:0] control_S_AXI_RDATA,
    (* dont_touch = "true" *) output logic          [1:0] control_S_AXI_RRESP,
    (* dont_touch = "true" *) output logic                control_S_AXI_RVALID, 
   //- MEMORY CONTROLLER
@@ -151,17 +153,17 @@ logic           stream_in_local_in_TREADY;
 //- Between AXI and memory manager
 logic mem_valid_axi;
 logic mem_wstrb_axi; 
-logic [31:0] mem_addr_axi;  
-logic [31:0] mem_wdata_axi;
+logic [BW_AXI-1:0] mem_addr_axi;  
+logic [BWB_AXI-1:0] mem_wdata_axi;
 //logic [31:0] mem_rdata_axi;  //FIXME
 logic [S_AXI_ID_SZ-1:0] mem_req_id_axi;
 
 //- Registers
 logic   [7:0] rvControl;
 logic   [7:0] rvControl_memory;
-logic [BW-1:0] tile_coordinates_line;
-logic [BW-1:0] tile_coordinates_ctrl;
-logic [BW-1:0] tile_coordinates_memory;
+logic [BW_AXI-1:0] tile_coordinates_line;
+logic [BW_AXI-1:0] tile_coordinates_ctrl;
+logic [BW_AXI-1:0] tile_coordinates_memory;
 logic [XY_SZ-1:0] myX_line;
 logic [XY_SZ-1:0] myY_line;
 logic [XY_SZ-1:0] myX_memory;
@@ -240,7 +242,7 @@ axi_control#(
 
 
 xpm_cdc_array_single #(
-  .WIDTH(BW),
+  .WIDTH(BW_AXI),
   .SIM_ASSERT_CHK(`SIM_ASSERT_CHK)
 ) tile_coord_cdc (
   // Module ports
@@ -434,6 +436,7 @@ end else begin
   assign stream_out_TREADY_l0        = stream_out_TREADY[3:0];
 
   tile_noc #(
+    .BW  (BW),
     .BIG (1),
     .OFFSET(4)
   ) tile_noc_1 (
@@ -448,18 +451,18 @@ end else begin
     .stream_out_TDATA            (stream_out_TDATA_l1),
     .stream_out_TKEEP            (stream_out_TKEEP_l1),
     .stream_out_TLAST            (stream_out_TLAST_l1),
-     .stream_out_local_out_TVALID (stream_out_local_out_TVALID_l1),
-     .stream_out_local_out_TREADY (stream_out_local_out_TREADY_l1),
-     .stream_out_local_out_TDATA  (stream_out_local_out_TDATA_l1),
-     .stream_out_local_out_TKEEP  (stream_out_local_out_TKEEP_l1),
-     .stream_out_local_out_TLAST  (stream_out_local_out_TLAST_l1),
-     .stream_in_local_in_TVALID   (stream_in_local_in_TVALID_l1),
-     .stream_in_local_in_TREADY   (stream_in_local_in_TREADY_l1),
-     .stream_in_local_in_TDATA      (stream_in_local_in_TDATA_l1),
-     .stream_in_local_in_TKEEP    (stream_in_local_in_TKEEP_l1),
-     .stream_in_local_in_TLAST      (stream_in_local_in_TLAST_l1),
-     .clk_line                    (clk_line ),
-     .clk_line_rst_high           (clk_line_rst_high),
+    .stream_out_local_out_TVALID (stream_out_local_out_TVALID_l1),
+    .stream_out_local_out_TREADY (stream_out_local_out_TREADY_l1),
+    .stream_out_local_out_TDATA  (stream_out_local_out_TDATA_l1),
+    .stream_out_local_out_TKEEP  (stream_out_local_out_TKEEP_l1),
+    .stream_out_local_out_TLAST  (stream_out_local_out_TLAST_l1),
+    .stream_in_local_in_TVALID   (stream_in_local_in_TVALID_l1),
+    .stream_in_local_in_TREADY   (stream_in_local_in_TREADY_l1),
+    .stream_in_local_in_TDATA    (stream_in_local_in_TDATA_l1),
+    .stream_in_local_in_TKEEP    (stream_in_local_in_TKEEP_l1),
+    .stream_in_local_in_TLAST    (stream_in_local_in_TLAST_l1),
+    .clk_line                    (clk_line ),
+    .clk_line_rst_high           (clk_line_rst_high),
     .clk_line_rst_low            (clk_line_rst_low));
 
 
@@ -569,6 +572,7 @@ end else begin
     assign stream_out_local_out_TREADY_l2 =  stream_out_local_out_TREADY;
 
    tile_noc #(
+      .BW  (BW),
       .BIG (1),
       .LEVEL (1)
    ) tile_noc_2 (
@@ -600,6 +604,7 @@ end else begin
 end
 
 tile_noc#(
+   .BW  (BW),
    .BIG (1)
 ) tile_noc_0 (
    .HsrcId                       ({myY_line,myX_line}), 

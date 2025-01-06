@@ -11,6 +11,8 @@ module Tile_fft_int#(
    parameter TYPE              = "ADDER",
    parameter BW                = 32,
    parameter BWB               = BW/8,
+   parameter BW_AXI            = 32,
+   parameter BWB_AXI           = BW_AXI/8,   
    parameter AXI_ADDR          =  8,
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3,
@@ -36,8 +38,8 @@ module Tile_fft_int#(
 	(* dont_touch = "true" *) input  logic [AXI_ADDR-1:0] control_S_AXI_AWADDR,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_AWVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_AWREADY,
-	(* dont_touch = "true" *) input  logic       [BW-1:0] control_S_AXI_WDATA,
-	(* dont_touch = "true" *) input  logic      [BWB-1:0] control_S_AXI_WSTRB,
+	(* dont_touch = "true" *) input  logic   [BW_AXI-1:0] control_S_AXI_WDATA,
+	(* dont_touch = "true" *) input  logic  [BWB_AXI-1:0] control_S_AXI_WSTRB,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_WVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_WREADY,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_BREADY,
@@ -47,7 +49,7 @@ module Tile_fft_int#(
 	(* dont_touch = "true" *) input  logic                control_S_AXI_ARVALID,
 	(* dont_touch = "true" *) output logic                control_S_AXI_ARREADY,
 	(* dont_touch = "true" *) input  logic                control_S_AXI_RREADY,
-	(* dont_touch = "true" *) output logic       [BW-1:0] control_S_AXI_RDATA,
+	(* dont_touch = "true" *) output logic   [BW_AXI-1:0] control_S_AXI_RDATA,
 	(* dont_touch = "true" *) output logic          [1:0] control_S_AXI_RRESP,
 	(* dont_touch = "true" *) output logic                control_S_AXI_RVALID
 );
@@ -68,18 +70,18 @@ logic           stream_in_local_in_TREADY;
 //- Between AXI and memory manager
 wire mem_valid_axi;
 wire mem_wstrb_axi;
-wire [BW-1:0] mem_addr_axi;
-wire [BW-1:0] mem_wdata_axi;
-wire [BW-1:0] mem_rdata_axi;
+wire [BW_AXI-1:0] mem_addr_axi;
+wire [BW_AXI-1:0] mem_wdata_axi;
+wire [BW_AXI-1:0] mem_rdata_axi;
 
 //- Registers
-logic       [7:0] rvControl;
-logic    [BW-1:0] tile_coordinates_line;
-logic    [BW-1:0] tile_coordinates_ctrl;
-logic [XY_SZ-1:0] myX_line;
-logic [XY_SZ-1:0] myY_line;
-logic [XY_SZ-1:0] myX_ctrl;
-logic [XY_SZ-1:0] myY_ctrl;
+logic       [7:0]  rvControl;
+logic [BW_AXI-1:0] tile_coordinates_line;
+logic [BW_AXI-1:0] tile_coordinates_ctrl;
+logic [XY_SZ-1:0]  myX_line;
+logic [XY_SZ-1:0]  myY_line;
+logic [XY_SZ-1:0]  myX_ctrl;
+logic [XY_SZ-1:0]  myY_ctrl;
 
 ///////////////////////////////////
 // AXI
@@ -94,34 +96,34 @@ axi_control#(
   .AXI_ADDR (AXI_ADDR)
 ) axi_control_inst (
    //- Clock and reset
-   .clk_control         (clk_control),
-   .clk_line         (clk_line),
-   .clk_control_rst_low (clk_control_rst_low),
+   .clk_control          (clk_control),
+   .clk_line             (clk_line),
+   .clk_control_rst_low  (clk_control_rst_low),
    .clk_control_rst_high (clk_control_rst_high),
-   .clk_line_rst_low (clk_line_rst_low),
-   .clk_line_rst_high (clk_line_rst_high),
+   .clk_line_rst_low     (clk_line_rst_low),
+   .clk_line_rst_high    (clk_line_rst_high),
    //- Output Interface: Switch reading from memory manager
-	.stream_out_TREADY (stream_in_local_in_TREADY),
-	.stream_out_TVALID (stream_in_local_in_TVALID),
-	.stream_out_TLAST  (stream_in_local_in_TLAST),
+	.stream_out_TREADY    (stream_in_local_in_TREADY),
+	.stream_out_TVALID    (stream_in_local_in_TVALID),
+	.stream_out_TLAST     (stream_in_local_in_TLAST),
   //- AXI bus
-	.control_S_AXI_AWADDR 	(control_S_AXI_AWADDR),
-	.control_S_AXI_AWVALID	(control_S_AXI_AWVALID),
-	.control_S_AXI_AWREADY	(control_S_AXI_AWREADY),
-	.control_S_AXI_WDATA  	(control_S_AXI_WDATA),
-	.control_S_AXI_WSTRB 	  (control_S_AXI_WSTRB),
-	.control_S_AXI_WVALID	  (control_S_AXI_WVALID),
-	.control_S_AXI_WREADY	  (control_S_AXI_WREADY),
-	.control_S_AXI_BRESP 	  (control_S_AXI_BRESP),
-	.control_S_AXI_BVALID	  (control_S_AXI_BVALID),
-	.control_S_AXI_BREADY	  (control_S_AXI_BREADY),
-	.control_S_AXI_ARADDR	  (control_S_AXI_ARADDR),
-	.control_S_AXI_ARVALID	(control_S_AXI_ARVALID),
-	.control_S_AXI_ARREADY	(control_S_AXI_ARREADY),
-	.control_S_AXI_RDATA 	  (control_S_AXI_RDATA),
-	.control_S_AXI_RRESP 	  (control_S_AXI_RRESP),
-	.control_S_AXI_RVALID	  (control_S_AXI_RVALID),
-	.control_S_AXI_RREADY 	(control_S_AXI_RREADY),
+	.control_S_AXI_AWADDR  (control_S_AXI_AWADDR),
+	.control_S_AXI_AWVALID (control_S_AXI_AWVALID),
+	.control_S_AXI_AWREADY (control_S_AXI_AWREADY),
+	.control_S_AXI_WDATA   (control_S_AXI_WDATA),
+	.control_S_AXI_WSTRB   (control_S_AXI_WSTRB),
+	.control_S_AXI_WVALID  (control_S_AXI_WVALID),
+	.control_S_AXI_WREADY  (control_S_AXI_WREADY),
+	.control_S_AXI_BRESP   (control_S_AXI_BRESP),
+	.control_S_AXI_BVALID  (control_S_AXI_BVALID),
+	.control_S_AXI_BREADY  (control_S_AXI_BREADY),
+	.control_S_AXI_ARADDR  (control_S_AXI_ARADDR),
+	.control_S_AXI_ARVALID (control_S_AXI_ARVALID),
+	.control_S_AXI_ARREADY (control_S_AXI_ARREADY),
+	.control_S_AXI_RDATA   (control_S_AXI_RDATA),
+	.control_S_AXI_RRESP   (control_S_AXI_RRESP),
+	.control_S_AXI_RVALID  (control_S_AXI_RVALID),
+	.control_S_AXI_RREADY  (control_S_AXI_RREADY),
    //- AXI memory interface
    .mem_valid_axi     (mem_valid_axi),
 	.mem_addr_axi      (mem_addr_axi),
@@ -178,31 +180,33 @@ acc_fft_sw32#(
 // Switch
 ///////////////////////////////////
 
-tile_noc tile_noc (
-  .HsrcId                      ({myY_line,myX_line}),
-  .stream_in_TVALID            (stream_in_TVALID),
-  .stream_in_TREADY            (stream_in_TREADY),
-  .stream_in_TDATA             (stream_in_TDATA),
-  .stream_in_TKEEP             (stream_in_TKEEP),
-  .stream_in_TLAST             (stream_in_TLAST),
-  .stream_out_TVALID           (stream_out_TVALID),
-  .stream_out_TREADY           (stream_out_TREADY),
-  .stream_out_TDATA            (stream_out_TDATA),
-  .stream_out_TKEEP            (stream_out_TKEEP),
-  .stream_out_TLAST            (stream_out_TLAST),
-	.stream_out_local_out_TVALID (stream_out_local_out_TVALID),
+tile_noc#(
+  .BW (BW)
+tile_noc (
+   .HsrcId                       ({myY_line,myX_line}),
+   .stream_in_TVALID             (stream_in_TVALID),
+   .stream_in_TREADY             (stream_in_TREADY),
+   .stream_in_TDATA              (stream_in_TDATA),
+   .stream_in_TKEEP              (stream_in_TKEEP),
+   .stream_in_TLAST              (stream_in_TLAST),
+   .stream_out_TVALID            (stream_out_TVALID),
+   .stream_out_TREADY            (stream_out_TREADY),
+   .stream_out_TDATA             (stream_out_TDATA),
+   .stream_out_TKEEP             (stream_out_TKEEP),
+   .stream_out_TLAST             (stream_out_TLAST),
+   .stream_out_local_out_TVALID (stream_out_local_out_TVALID),
 	.stream_out_local_out_TREADY (stream_out_local_out_TREADY),
-	.stream_out_local_out_TDATA	 (stream_out_local_out_TDATA),
-	.stream_out_local_out_TKEEP	 (stream_out_local_out_TKEEP),
-	.stream_out_local_out_TLAST	 (stream_out_local_out_TLAST),
-	.stream_in_local_in_TVALID	 (stream_in_local_in_TVALID),
-	.stream_in_local_in_TREADY	 (stream_in_local_in_TREADY),
-	.stream_in_local_in_TDATA	   (stream_in_local_in_TDATA),
-	.stream_in_local_in_TKEEP  	 (stream_in_local_in_TKEEP),
-	.stream_in_local_in_TLAST	   (stream_in_local_in_TLAST),
-	.clk_line            	       (clk_line ),
-	.clk_line_rst_high   	       (clk_line_rst_high ),
-  .clk_line_rst_low            (clk_line_rst_low)
+	.stream_out_local_out_TDATA  (stream_out_local_out_TDATA),
+	.stream_out_local_out_TKEEP  (stream_out_local_out_TKEEP),
+	.stream_out_local_out_TLAST  (stream_out_local_out_TLAST),
+	.stream_in_local_in_TVALID	  (stream_in_local_in_TVALID),
+	.stream_in_local_in_TREADY	  (stream_in_local_in_TREADY),
+	.stream_in_local_in_TDATA	  (stream_in_local_in_TDATA),
+	.stream_in_local_in_TKEEP    (stream_in_local_in_TKEEP),
+	.stream_in_local_in_TLAST	  (stream_in_local_in_TLAST),
+	.clk_line            	     (clk_line ),
+	.clk_line_rst_high   	     (clk_line_rst_high ),
+   .clk_line_rst_low            (clk_line_rst_low)
 );
 
 endmodule

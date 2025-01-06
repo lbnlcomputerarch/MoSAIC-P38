@@ -39,7 +39,7 @@
 module Dispatcher#(
   parameter END = 3,
   parameter BW  = 32,
-  parameter BWB =  4
+  parameter BWB =  BW/8
 )(
    input  logic           clk_line,
    input  logic           clk_line_rst_high,
@@ -60,6 +60,13 @@ module Dispatcher#(
    input logic [127:0] notify_in_metadata_in_DATA
 );
 
+localparam FILLW  = BW*4 - BW;
+localparam FILLWB = BWB*4 - BWB;
+logic [FILLW-1:0] filler;
+logic [FILLWB-1:0] fillerb;
+assign filler = 'h0;
+assign fillerb = 'h0;
+
 logic         [3:0] stream_in_TREADY_t;
 logic         [3:0] stream_out_TVALID;
 logic         [3:0] stream_out_TLAST;
@@ -67,11 +74,11 @@ logic [(BWB*4)-1:0] stream_out_TKEEP;
 logic  [(BW*4)-1:0] stream_out_TDATA;
 logic         [3:0] stream_out_TREADY;
 
-logic         [3:0] stream_out_local_out_TVALID;
-logic         [3:0] stream_out_local_out_TLAST;
-logic     [BWB-1:0] stream_out_local_out_TKEEP;
-logic      [BW-1:0] stream_out_local_out_TDATA;
-logic         [3:0] stream_out_local_out_TREADY;
+logic           stream_out_local_out_TVALID;
+logic           stream_out_local_out_TLAST;
+logic [BWB-1:0] stream_out_local_out_TKEEP;
+logic  [BW-1:0] stream_out_local_out_TDATA;
+logic           stream_out_local_out_TREADY;
 
 
 assign stream_in_packet_TREADY = stream_in_TREADY_t[0];
@@ -86,13 +93,14 @@ assign stream_out_local_out_TREADY = stream_out_packet_TREADY[3];
 
 tile_noc #(
    .DISPATCHER (1),
+   .BW  (BW),
    .END (END)
 )tile_noc (
   .HsrcId                      (6'h0), 
   .stream_in_TVALID            ({3'h0,stream_in_packet_TVALID}),
   .stream_in_TREADY            (stream_in_TREADY_t),          //- Output
-  .stream_in_TDATA             ({96'h0,stream_in_packet_TDATA}),
-  .stream_in_TKEEP             ({12'h0,stream_in_packet_TKEEP}),
+  .stream_in_TDATA             ({filler,stream_in_packet_TDATA}),
+  .stream_in_TKEEP             ({fillerb,stream_in_packet_TKEEP}),
   .stream_in_TLAST             ({3'h0,stream_in_packet_TLAST}),
   .stream_out_TVALID           (stream_out_TVALID),
   .stream_out_TREADY           (stream_out_TREADY),           //- Input

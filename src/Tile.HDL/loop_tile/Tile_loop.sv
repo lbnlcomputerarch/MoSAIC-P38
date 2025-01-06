@@ -37,6 +37,8 @@
 module Tile_loop#(
    parameter BW                = 32,
    parameter BWB               = BW/8,
+   parameter BW_AXI            = 32,
+   parameter BWB_AXI           = BW/8,
    parameter AXI_ADDR          =  8,
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3,
@@ -62,8 +64,8 @@ module Tile_loop#(
    (* dont_touch = "true" *) input  logic [AXI_ADDR-1:0] control_S_AXI_AWADDR,
    (* dont_touch = "true" *) input  logic                control_S_AXI_AWVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_AWREADY,
-   (* dont_touch = "true" *) input  logic       [BW-1:0] control_S_AXI_WDATA,
-   (* dont_touch = "true" *) input  logic      [BWB-1:0] control_S_AXI_WSTRB,
+   (* dont_touch = "true" *) input  logic   [BW_AXI-1:0] control_S_AXI_WDATA,
+   (* dont_touch = "true" *) input  logic  [BWB_AXI-1:0] control_S_AXI_WSTRB,
    (* dont_touch = "true" *) input  logic                control_S_AXI_WVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_WREADY,
    (* dont_touch = "true" *) input  logic                control_S_AXI_BREADY,
@@ -73,7 +75,7 @@ module Tile_loop#(
    (* dont_touch = "true" *) input  logic                control_S_AXI_ARVALID,
    (* dont_touch = "true" *) output logic                control_S_AXI_ARREADY,
    (* dont_touch = "true" *) input  logic                control_S_AXI_RREADY,
-   (* dont_touch = "true" *) output logic       [BW-1:0] control_S_AXI_RDATA,
+   (* dont_touch = "true" *) output logic   [BW_AXI-1:0] control_S_AXI_RDATA,
    (* dont_touch = "true" *) output logic          [1:0] control_S_AXI_RRESP,
    (* dont_touch = "true" *) output logic                control_S_AXI_RVALID
 );
@@ -94,15 +96,15 @@ logic           stream_in_local_in_TREADY;
 //- Between AXI and memory manager
 wire mem_valid_axi;
 wire mem_wstrb_axi; 
-wire [BW-1:0] mem_addr_axi;  
-wire [BW-1:0] mem_wdata_axi;
-wire [BW-1:0] mem_rdata_axi; 
+wire [BW_AXI-1:0] mem_addr_axi;  
+wire [BW_AXI-1:0] mem_wdata_axi;
+wire [BW_AXI-1:0] mem_rdata_axi; 
 
 
 //- Registers
 logic       [7:0] rvControl;
-logic    [BW-1:0] tile_coordinates_line;
-logic    [BW-1:0] tile_coordinates_ctrl;
+logic [BW_AXI-1:0] tile_coordinates_line;
+logic [BW_AXI-1:0] tile_coordinates_ctrl;
 logic [XY_SZ-1:0] myX_line;
 logic [XY_SZ-1:0] myY_line;
 
@@ -160,6 +162,8 @@ axi_control#(
 ///////////////////////////////////
 
 acc_loop#(
+   .BW (BW),
+   .BW_AXI (BW),
    .OFFSET_SZ (12),
    .XY_SZ     (XY_SZ)
 ) acc_loop (
@@ -196,7 +200,9 @@ acc_loop#(
 // Switch
 ///////////////////////////////////
 
-tile_noc tile_noc (
+tile_noc#(
+   .BW (BW)
+) tile_noc (
    .HsrcId                      ({myY_line,myX_line}), 
    .stream_in_TVALID            (stream_in_TVALID),
    .stream_in_TREADY            (stream_in_TREADY),

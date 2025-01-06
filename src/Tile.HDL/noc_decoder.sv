@@ -32,6 +32,8 @@
 `include "global_defines.sv"
 
 module noc_decoder #(
+   parameter BW    = 32,
+   parameter BWB   = BW/8,
    parameter XY_SZ = 3
 )(
   //---Clock and Reset---//
@@ -43,29 +45,29 @@ module noc_decoder #(
    //---NOC interface---//
    //- Input Interface
    input  logic        stream_in_TVALID,
-   input  logic [31:0] stream_in_TDATA,
-   input  logic [ 3:0] stream_in_TKEEP, 
+   input  logic  [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP, 
    input  logic        stream_in_TLAST,
    output logic        stream_in_TREADY,  
    //- Output Interface
    input  logic        stream_out_TREADY,
    output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
+   output logic  [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
    output logic        stream_out_TLAST,
    //--- Decoding ---//
-   output logic        unblock,      //- Set to 1 if not used
-   input  logic        spy_idle,     //- Set to 1 if not used
-   input  logic        pcpi_idle,    //- Set to 1 is not used
-   input  logic        fifo_0_full,
-   output logic        fifo_0A_en,   //- Message queues
-   output logic [31:0] fifo_0A_addr,
-   output logic [31:0] mem_addr_a,   //- Scratchpad memory
-   output logic [31:0] mem_wdata_a, 
-   output logic        mem_wstrb_a,
-   output logic        mem_valid_a,
-   input  logic [31:0] mem_rdata_a,
-   output logic [31:0] mem_rdata_rv
+   output logic          unblock,      //- Set to 1 if not used
+   input  logic          spy_idle,     //- Set to 1 if not used
+   input  logic          pcpi_idle,    //- Set to 1 is not used
+   input  logic          fifo_0_full,
+   output logic          fifo_0A_en,   //- Message queues
+   output logic   [31:0] fifo_0A_addr,
+   output logic   [31:0] mem_addr_a,   //- Scratchpad memory
+   output logic [BW-1:0] mem_wdata_a, 
+   output logic          mem_wstrb_a,
+   output logic          mem_valid_a,
+   input  logic [BW-1:0] mem_rdata_a,
+   output logic   [31:0] mem_rdata_rv
 );
 
 /***************************
@@ -107,11 +109,11 @@ logic [3:0] nextState1;
 logic  [2:0] noc_out_code;
 logic [31:0] next_fifo_0A_addr;
 
-logic [31:0] noc_data_in;
+logic [BW-1:0] noc_data_in;
 logic [31:0] next_mem_addr_a;
-logic [31:0] next_noc_header1_in;
-logic [31:0] noc_header1_in;
-logic [31:0] next_noc_data_in;
+logic [BW-1:0] next_noc_header1_in;
+logic [BW-1:0] noc_header1_in;
+logic [BW-1:0] next_noc_data_in;
 logic [31:0] next_ctr;
 logic [31:0] ctr;
 logic [31:0] noc_offset_in;
@@ -124,7 +126,7 @@ assign pt=0;
 logic  [5:0] noc_out_dest;
 logic [11:0] noc_out_offset;
 
-logic [31:0] noc_out_header1a;
+logic [BW-1:0] noc_out_header1a;
 
 //logic fifo_0A_we;
 

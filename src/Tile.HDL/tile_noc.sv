@@ -45,7 +45,7 @@ module tile_noc #(
    //- For everyone
    parameter XY_SZ  = 3,
    parameter BW     = 32,
-   parameter BWB    = 4
+   parameter BWB    = BW/8
 )(
    input  logic                 clk_line,
    input  logic                 clk_line_rst_high,
@@ -108,10 +108,11 @@ assign grant_right[1]  = 1'b0;
 assign grant_bottom[0] = 1'b0;
 
 in_dest#(
-   .XY_SZ (XY_SZ),
-   .BIG   (BIG),
+   .XY_SZ  (XY_SZ),
+   .BIG    (BIG),
+   .BW     (BW),
    .OFFSET (OFFSET),
-   .LEVEL (LEVEL) 
+   .LEVEL  (LEVEL) 
 ) in_dest_left(
    .clk_line           (clk_line),
    .rst                (clk_line_rst_low),
@@ -133,6 +134,7 @@ in_dest#(
 in_dest#(
    .XY_SZ  (XY_SZ),
    .BIG    (BIG),
+   .BW     (BW),
    .OFFSET (OFFSET),
    .LEVEL  (LEVEL) 
 )in_dest_top(
@@ -155,6 +157,7 @@ in_dest#(
 in_dest#(
    .XY_SZ (XY_SZ),
    .BIG   (BIG),
+   .BW     (BW),
    .OFFSET (OFFSET),
    .LEVEL (LEVEL) 
 )in_dest_right(
@@ -177,6 +180,7 @@ in_dest#(
 in_dest#(
    .XY_SZ (XY_SZ),
    .BIG   (BIG),
+   .BW     (BW),
    .OFFSET (OFFSET),
    .DISPATCHER (DISPATCHER),
    .END (END),
@@ -201,6 +205,7 @@ in_dest#(
 in_dest#(
    .XY_SZ (XY_SZ),
    .BIG   (BIG),
+   .BW     (BW),
    .OFFSET (OFFSET),
    .LEVEL (LEVEL) 
 )in_dest_local(
@@ -222,6 +227,7 @@ in_dest#(
 
 
 grant_out#(
+   .BW     (BW),
    .ID (3'd4)
 ) grant_out_left(
    .clk_line               (clk_line),
@@ -241,6 +247,7 @@ grant_out#(
    .stream_out_TREADY      (stream_out_TREADY[3])); //- Input
 
 grant_out#(
+   .BW     (BW),
    .ID (3'd3)
 ) grant_out_top(
    .clk_line               (clk_line),
@@ -260,6 +267,7 @@ grant_out#(
    .stream_out_TREADY      (stream_out_TREADY[2])); //- Input
 
 grant_out#(
+   .BW     (BW),
    .ID (3'd2)
 ) grant_out_right(
    .clk_line               (clk_line),
@@ -279,6 +287,7 @@ grant_out#(
    .stream_out_TREADY      (stream_out_TREADY[1]));
 
 grant_out#(
+   .BW     (BW),
    .ID (3'd1)
 ) grant_out_bottom(
    .clk_line               (clk_line),
@@ -298,6 +307,7 @@ grant_out#(
    .stream_out_TREADY      (stream_out_TREADY[0]));
 
 grant_out#(
+   .BW     (BW),
    .ID (3'd5)
 ) grant_out_local(
   .clk_line               (clk_line),
