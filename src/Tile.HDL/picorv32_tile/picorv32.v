@@ -18,7 +18,7 @@
  */
 
 /* verilator lint_off WIDTH */
-/* verilator lint_off PINISSING */
+/* verilator lint_off PINMISSING */
 /* verilator lint_off CASEOVERLAP */
 /* verilator lint_off CASEINCOMPLETE */
 
