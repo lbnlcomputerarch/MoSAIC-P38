@@ -31,7 +31,7 @@
 ../src/Dispatcher.HDL/Dispatcher.sv
 ../src/Gatherer.HDL/Gatherer.sv
 ../src/S_PROTOCOL_ADAPTERs.HDL/S_PROTOCOL_ADAPTER_INGRESS.sv
-../src/S_PROTOCOL_ADAPTERs.HDL/S_PROTOCOL_ADAPTER_EGRESS.v
+../src/S_PROTOCOL_ADAPTERs.HDL/S_PROTOCOL_ADAPTER_EGRESS.sv
 ../src/S_CONTROLLERs.HDL/S_CONTROLLER_USS.sv
 ../src/S_CONTROLLERs.HDL/axi_ux_addr.sv
 ../src/S_CONTROLLERs.HDL/axi_ux_resp.sv
