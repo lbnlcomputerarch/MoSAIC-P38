@@ -29,7 +29,6 @@
 ##########################
 use lib "$ENV{PWD}";
 
-
 use gen_hex;
 use POSIX;
 my %param;
@@ -45,9 +44,8 @@ $param{'clean'}  = 1;
 $param{'r'} = 2;
 $param{'c'} = 2;
 
-
-@tile_array = (['pico', 'modin'],
-               ['spad', 'spad']);
+@tile_array = (['pico', 'spad'],
+               ['spad', 'modin']);
 
 
 ##########################
