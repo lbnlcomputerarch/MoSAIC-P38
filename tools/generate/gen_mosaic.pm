@@ -886,6 +886,9 @@ sub gen_pico_testcase{
                }else{
                   die "ERROR: $full_path2 file does not exist\n";
                }
+            }else{
+               print $FH "\t\$display(\"Writing tile $i,$j\");\n";
+               print $FH "\tinitialize_mem_tile_AXI(\"$full_path2\",$adr);\n\n"; #FIXME: adr
             }
          }
       }
