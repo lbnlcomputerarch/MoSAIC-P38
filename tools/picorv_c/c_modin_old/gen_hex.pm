@@ -1,4 +1,27 @@
 #!/usr/bin/perl
+# *************************************************************************
+# 
+# *** Copyright Notice ***
+#
+# P38 heterogeneous multi-tiled system with support for message queues 
+# (MoSAIC) Copyright (c) 2024, The Regents of the University of California, 
+# through Lawrence Berkeley National Laboratory (subject to receipt of
+# any required approvals from the U.S. Dept. of Energy). All rights reserved.
+# 
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+#
+# NOTICE.  This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights.  As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative 
+# works, and perform publicly and display publicly, and to permit others 
+# to do so.
+#
+# *************************************************************************
+
 
 package gen_hex;
 require Exporter;
@@ -23,11 +46,11 @@ our $end = 8;
 
 sub gen_code{
    my $param_p = $_[0];
-
+   
    $param_p=check_params($param_p);
-
+   
    my %param = %{$param_p};
-
+   gen_defines(\%param);
    #- Generate code
    #- 8 in the loop is set by the three bit coordinate in mosaic_4k
    for (my $i=0; $i<$end; $i=$i+1){
@@ -40,23 +63,16 @@ sub gen_code{
                gen_start(\%param,$id);
                `make clean`;
                `make SRC_FNAME=$param{'c_code'}`;
-                #`mv $param{'c_code'}32.hex $param{'c_code'}32_$id.hex`;
+              # `mv $param{'c_code'}32.hex $param{'c_code'}32_$id.hex`;
                if ($param{'keep'}){
                 `mv $param{'c_code'}.dissasembled $temp_dir/$param{'c_code'}_$id.dissasembled`;
                 `mv $param{'c_code'}.readelf $temp_dir/$param{'c_code'}_$id.readelf`;
-                `mv start.dissasembled $temp_dir/start_$id.dissasembled`;
-                `mv start.readelf $temp_dir/start_$id.readelf`;
                }
                clean_temp(\%param, $id);
-               #my $addr_hex = sprintf("%08x", ($id * $addr_range)/4);
-               #my @addr_hex_a = split('',$addr_hex);
-               #$addr_hex = join('',@addr_hex_a[0..4]);
-               #`sed -i s\/\@$addr_hex\/\@00000\/ $param{'c_code'}32_$id.hex`
             }
          }
       }
    }
-
    #- Cleaning 
    print "INFO: Cleaning up\n";
    clean($param_p,1);
@@ -94,6 +110,40 @@ sub clean_temp{
    if ($param{'keep'}){
       `mv $file $temp_dir/$new_file`;
    }
+}
+
+sub gen_defines{
+   my %param = %{$_[0]};
+   
+   my $file_name = "mosaic_defines.h";
+   my @tile_array = @{$param{'tile_array'}};        #- Type of tile
+   my $pico_count = 0;
+   #- Create file
+   open (my $FH, '>', $file_name) or die "Couldn't open $file_name $!\n";
+   for (my $i=0; $i<$param{'r'}; $i=$i+1){
+      my @row = @{$tile_array[$i]};
+      for (my $j=0; $j<$param{'c'}; $j=$j+1){
+         my $type = $row[$j];
+         if ($type eq 'pico'){
+            $pico_count = $pico_count + 1;
+         }
+         $type = uc($type);
+         my $id = $i + $j*8;
+         my $addr_hex = sprintf("%02x", $id);
+         print $FH "\#define $type$id 0x000${addr_hex}000\n";
+         
+      }
+   }
+   print $FH "\n";
+   my $tiles_num = $param{'r'} * $param{'c'};
+   print $FH "\#define TILES $tiles_num\n";
+   my $tiles_num = (8*$param{'c'}) - (8-$param{'r'});
+   print $FH "\#define END_TILE $tiles_num\n";
+   print $FH "\#define ROW $param{'r'}\n";
+   print $FH "\#define COL $param{'c'}\n";
+   print $FH "\#define PICO_N $pico_count\n";
+   close($FH);
+   
 }
 
 sub check_params{
@@ -168,12 +218,14 @@ sub clean{
    }
 }
 
+
 sub gen_mem_map{
    my %param = %{$_[0]};
    my $tile_id   = $_[1];
    my $file_name = "mem_layout.ld";
    
    my @tile_array = @{$param{'tile_array'}};        #- Type of tile
+   #my %flag = ();
 
    #- Create file
    open (my $FH, '>', $file_name) or die "Couldn't open $file_name $!\n";
@@ -192,8 +244,11 @@ sub gen_mem_map{
          if ($tile_id == $id){
             $origin = $origin + 512;
             $name = "LOCAL (xrw)";
+         #}elsif (exists $flag{$type}){
+            #$name = "$type$id (rw)";
          }else{
             $name = "$type$id (rw)";
+            #$$flag{$type} = 1;
          }
 
          if ($tile_id == $id){$length = "0x003E00"}
@@ -203,15 +258,14 @@ sub gen_mem_map{
          print $FH "\t$name : ORIGIN = 0x$addr_hex, LENGTH = $length\n";
       }
    }
-
-   print $FH "\tMYDATA0 (rw) : ORIGIN = 0x0001C000, LENGTH = 0x004000\n"; # Col 0
-   print $FH "\tMYDATA1 (rw) : ORIGIN = 0x0003C000, LENGTH = 0x004000\n"; # Col 1
-   print $FH "\tMYDATA2 (rw) : ORIGIN = 0x0005C000, LENGTH = 0x004000\n"; # Col 2
-   print $FH "\tMYDATA3 (rw) : ORIGIN = 0x0007C000, LENGTH = 0x004000\n"; # Col 3
-   print $FH "\tMYDATA  (rw) : ORIGIN = 0x00080000, LENGTH = 0x004000\n"; # Remaining 
-   #print $FH "\tSPAD (rw)    : ORIGIN = 0x00020000, LENGTH = 0x004000\n";
+   #print $FH "\tMYDATA1 (rw) : ORIGIN = 0x00010000, LENGTH = 0x004000\n";
+   #print $FH "\tMYDATA2 (rw) : ORIGIN = 0x00030000, LENGTH = 0x004000\n";
+   #print $FH "\tMYDATA3 (rw) : ORIGIN = 0x00050000, LENGTH = 0x004000\n";
+   #print $FH "\tMYDATA4 (rw) : ORIGIN = 0x00070000, LENGTH = 0x004000\n";
+   #print $FH "\tSPAD (rw)    : ORIGIN = 0x00068000, LENGTH = 0x004000\n";
+   #my $addr_hex = sprintf("0x%X", $tile_id * $addr_range + 512);
+   #print $FH "\tLOCAL (xrw)  : ORIGIN = $addr_hex, LENGTH = 0x004000\n";
    print $FH "}\n";
-
    close ($FH);
    #- keep it
    if ($param{'keep'}){
@@ -221,34 +275,6 @@ sub gen_mem_map{
       `cp $file_name $temp_dir/$new_file`
    }
 }
-
-
-#sub gen_mem_map{
-#   my %param = %{$_[0]};
-#   my $tile_id   = $_[1];
-#   my $file_name = "mem_layout.ld";
-#   #- Create file
-#   open (my $FH, '>', $file_name) or die "Couldn't open $file_name $!\n";
-#   print $FH "MEMORY\n";
-#   print $FH "{\n";
-#   print $FH "\tMYDATA1 (rw) : ORIGIN = 0x00010000, LENGTH = 0x004000\n";
-#	print $FH "\tMYDATA2 (rw) : ORIGIN = 0x00030000, LENGTH = 0x004000\n";
-#	print $FH "\tMYDATA3 (rw) : ORIGIN = 0x00050000, LENGTH = 0x004000\n";
-#	print $FH "\tMYDATA4 (rw) : ORIGIN = 0x00070000, LENGTH = 0x004000\n";
-#   print $FH "\tSPAD (rw)    : ORIGIN = 0x00068000, LENGTH = 0x004000\n";
-#   my $addr_hex = sprintf("0x%X", $tile_id * $addr_range + 512);
-#   print $FH "\tLOCAL (xrw)  : ORIGIN = $addr_hex, LENGTH = 0x004000\n";
-#   print $FH "}\n";
-#   close ($FH);
-#   #- keep it
-#   if ($param{'keep'}){
-#      my $new_file = $file_name;
-#      $new_file =~ s/\.ld//;
-#      $new_file = "${new_file}_${tile_id}.ld";
-#      `cp $file_name $temp_dir/$new_file`
-#   }
-#}
-
 
 sub gen_start{
    my $param = $_[0];
