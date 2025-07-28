@@ -29,8 +29,9 @@
 #- Do not modify
 ###########################################
 
+use lib "$ENV{PWD}";
 use lib "$ENV{PWD}/../picorv_c/c_modin";
-# use gen_mosaic;
+use gen_mosaic;
 use gen_hex;
 use POSIX;
 
@@ -56,41 +57,39 @@ $param{'new_tile'} = \%new_tile;
 
 #- 2x2 Tile array
 $path = "$ENV{PWD}";
-$fw_path = "$path/../picorv_c/c_modin";
+$fw_path = "$path/../picorv_c/c_modin/";
 $param{'r'} = 2;
 $param{'c'} = 2;
 $c_file = "pico_snn"; 
 
-@tile_array = (['pico', 'modin'],
-               ['spad', 'spad']);
+@tile_array = (['pico', 'spad'],
+               ['spad', 'modin']);
 
 $param{'firmware_path'} = $fw_path;
 
-@pico_program  = ('pico_snn32_0.hex', 'pico_snn32_8.hex',
-                'pico_snn32_1.hex', 'pico_snn32_9.hex');
+@pico_program  = ("${c_file}32_0.hex", '',
+                    # '', '');
+                     '', 'hex_files/SPI_full_check.hex');
 
 #- Simulation Time
 $param{'sim_loop'} = 8000;
 
-#- Simulation Time
-$param{'run_sim'} = 1;
-
 #- Running with Vivado
 $param{'vivado'}         = 1;
-$param{'vivado_project'} = 1;
+$param{'vivado_project'} = 0;
 $param{'run_sim'}        = 0;
 
 #- Generate hex code
-#chdir $fw_path or die "$!. $fw_path\n";
-#%param_h;
-#$param_h{'c_code'} = $c_modin; 
-#$param_h{'r'}      = $param{'r'}; 
-#$param_h{'c'}      = $param{'c'};             
-#$param_h{'keep'}   = 1; 
-#$param_h{'clean'}  = 1;
-#$param_h{'tile_array'} = \@tile_array;
-#gen_code(\%param_h);
-#chdir $path or die "$!. $path\n"; 
+chdir $fw_path or die "$!. $fw_path\n";
+%param_h;
+$param_h{'c_code'} = $c_file; 
+$param_h{'r'}      = $param{'r'}; 
+$param_h{'c'}      = $param{'c'};             
+$param_h{'keep'}   = 1; 
+$param_h{'clean'}  = 1;
+$param_h{'tile_array'} = \@tile_array;
+gen_code(\%param_h);
+chdir $path or die "$!. $path\n"; 
 
 ###########################################
 #- Generate: Do not modify
@@ -100,4 +99,4 @@ $param{'testcase'}     = $0;
 $param{'tile_array'}   = \@tile_array;
 $param{'pico_program'} = \@pico_program;
 
-#gen_all(\%param);
+gen_all(\%param);
