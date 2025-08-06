@@ -22,10 +22,10 @@
 // *************************************************************************
 
 ////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
-// Date        : Sept 29 2022
-// Description : Accelerator with scratchpad
-// File        : acc_scratchpad.sv - instantiate odin w/ axi ctrl
+// Author      : Laura Kallem
+// Date        : Aug 5 2025
+// Description : Modin accelerator instantiation, template from acc_scratchpad.sv
+// File        : acc_modin.sv - instantiate odin w/ axi ctrl
 ////////////////////////////////////////////////
 
 `timescale 1 ps/ 1 ps
@@ -76,7 +76,18 @@ logic [BWB-1:0] stream_in_TKEEP_int;
 logic           stream_in_TLAST_int;
 logic           stream_in_TREADY_int; 
 
-// aer
+ //AER interface signals
+logic AEROUT_ACK; 
+wire AEROUT_REQ;
+
+always_ff @(posedge clk_ctrl or posedge clk_ctrl_rst_high) begin 
+   if (clk_ctrl_rst_high) begin 
+      AEROUT_ACK <= 1'b0;
+   end
+   else begin 
+      AEROUT_ACK <= AEROUT_REQ;
+   end
+end
 
 //- Memory and Memory Manager
 (*mark_debug = "true" *) logic [BW-1:0] mm_mem_rdata;
@@ -178,8 +189,8 @@ tinyMODIN #(
   .AERIN_REQ(mm_mem_valid & mm_mem_wstrb), 
   .AERIN_ACK      (), // disconnected
   .AEROUT_ADDR    (), // dc, work on later
-  .AEROUT_REQ     (),
-  .AEROUT_ACK     (1'b0), // leave at 0
+  .AEROUT_REQ     (AEROUT_REQ),
+  .AEROUT_ACK     (AEROUT_ACK), 
   .SCHED_FULL      ()
 );
 

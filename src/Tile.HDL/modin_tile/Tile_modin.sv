@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////
-// Author      : Patricia, Kylie
-// Date        : 2024
-// Description : ASA accelerator
-// File        : Tile_asa.sv
+// Author      : Laura Kallem, template by Patricia and Kyle
+// Date        : 2025
+// Description : MoDIN Accelerator
+// File        : Tile_modin.sv
 ////////////////////////////////////////////////
 
 `timescale 1 ps / 1 ps

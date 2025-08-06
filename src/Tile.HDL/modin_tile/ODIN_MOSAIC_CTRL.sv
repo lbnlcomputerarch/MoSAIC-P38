@@ -1,3 +1,11 @@
+////////////////////////////////////////////////
+// Author      : Laura Kallem
+// Date        : August 2025
+// Description : ODIN MoSAIC CTRL block for neuron and synpase configuration, SPI replacement
+// File        : ODIN_MOSAIC_CTRL.sv
+////////////////////////////////////////////////
+
+
 module ODIN_MOSAIC_CTRL #(
     parameter N = 256,
     parameter M = 8

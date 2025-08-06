@@ -25,6 +25,9 @@
 //------------------------------------------------------------------------------
 
 
+// Modified for MoSAIC compatibility by Laura Kallem
+
+
 module tinyMODIN #(
 	parameter N = 256,
 	parameter M = 8

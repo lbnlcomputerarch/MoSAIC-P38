@@ -24,6 +24,7 @@
 //
 //------------------------------------------------------------------------------
 
+// Modified for MoSAIC by Laura Kallem
 
 module controller #(
     parameter N = 256,
@@ -79,6 +80,7 @@ module controller #(
     
     // Output to AER output -----------------------------------
     output wire           CTRL_AEROUT_POP_NEUR
+
 );
     
 	//----------------------------------------------------------------------------------
@@ -104,6 +106,11 @@ module controller #(
 	//	REGS & WIRES
 	//----------------------------------------------------------------------------------
     
+     // New registers for MoSAIC 
+    reg isFirstADDR;
+    reg [2*M-1:0] OLDADDR;
+    wire isValidADDR;
+
     reg          AERIN_REQ_sync_int, AERIN_REQ_sync;
     reg          SPI_GATE_ACTIVITY_sync_int;
     reg          CTRL_READBACK_EVENT_sync_int, CTRL_READBACK_EVENT_sync;
@@ -156,18 +163,40 @@ module controller #(
 	//	CONTROL FSM
 	//----------------------------------------------------------------------------------
     
+    // MODIFIED FOR MoSAIC, new ADDR CTRL
+    assign isValidADDR = isFirstADDR || (OLDADDR != CTRL_SPI_ADDR);
+
+        // Checking for different addresses, valid writes
+        always@(posedge CLK, posedge RST) begin
+            if (RST) begin
+                isFirstADDR <= 1; 
+                OLDADDR <= 0;
+            end
+            if (state == W_NEUR || state == R_NEUR || state == W_SYN || state == R_SYN) begin
+                if(isFirstADDR) begin
+                    OLDADDR <= CTRL_SPI_ADDR;
+                    isFirstADDR <= 0; 
+                end
+                else begin
+                    if (OLDADDR != CTRL_SPI_ADDR) begin
+                        OLDADDR <= CTRL_SPI_ADDR;
+                    end
+                end
+            end
+        end
+
     // State register
 	always @(posedge CLK, posedge RST)
 	begin
 		if   (RST) state <= WAIT;
 		else       state <= nextstate;
 	end
-    
+
 	// Next state logic
 	always @(*)
 		case(state)
 			WAIT 		:	if      (AEROUT_CTRL_BUSY)                                                          nextstate = WAIT;
-                            else if (SPI_GATE_ACTIVITY_sync)
+                            else if (SPI_GATE_ACTIVITY_sync && isValidADDR)
                                 if      (CTRL_PROG_EVENT_sync     && (CTRL_OP_CODE == 2'b01))                   nextstate = W_NEUR;
                                 else if (CTRL_READBACK_EVENT_sync && (CTRL_OP_CODE == 2'b01))                   nextstate = R_NEUR;
                                 else if (CTRL_PROG_EVENT_sync     && (CTRL_OP_CODE == 2'b10))                   nextstate = W_SYN;
@@ -201,13 +230,14 @@ module controller #(
 							else					                                                            nextstate = POP_VIRT;
             AER_POP     :   if      (!AEROUT_CTRL_BUSY)                                                         nextstate = WAIT;
                             else                                                                                nextstate = AER_POP;   
-			WAIT_SPIDN 	:   if      (~CTRL_PROG_EVENT_sync && ~CTRL_READBACK_EVENT_sync)                        nextstate = WAIT;
-							else					                                                            nextstate = WAIT_SPIDN;
+            // MODIFIED FOR MoSAIC, skipping SPIDN state and going straight to WAIT
+			WAIT_SPIDN 	:                                                                                       nextstate = WAIT;
 			WAIT_REQDN 	:   if      (~AERIN_REQ_sync)                                                           nextstate = WAIT;
 							else					                                                            nextstate = WAIT_REQDN;
 			default		:							                                                            nextstate = WAIT;
 		endcase 
         
+    
     // Control counter
 	always @(posedge CLK, posedge RST)
 		if      (RST)               ctrl_cnt <= 32'd0;
@@ -450,7 +480,6 @@ module controller #(
             neur_cnt_inc        = 1'b0;
         end
     end
-
     
 endmodule
 
