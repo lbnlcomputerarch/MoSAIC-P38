@@ -69,10 +69,11 @@ $param{'firmware_path'} = $fw_path;
 
 @pico_program  = ("${c_file}32_0.hex", '',
                     # '', '');
-                     '', 'hex_files/SPI_full_check.hex');
+                    #  '', 'hex_files/SPI_full_check.hex');
+                     '', 'hex_files/SPI_closedLoopOnly.hex');
 
 #- Simulation Time
-$param{'sim_loop'} = 8000;
+$param{'sim_loop'} = 100000;
 
 #- Running with Vivado
 $param{'vivado'}         = 1;
