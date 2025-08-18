@@ -65,27 +65,31 @@ void main(int argc, char *argv[]) {
     // OPEN LOOP
     if (DO_OPEN_LOOP) {
         // phase 1 
-        data = 0x1FF;
-        for (j=0; j<2050; j=j+1){
-            mPut(data,addr);
-        }
-
-        // phase 2
-        for (j=0; j<16; j=j+1){
-            for(k=0; k<10; k=k+1){
-                data =  ((0 << 10) | (0 << 9) | (input_neurons[j] & 0xff));
-                mPut(data, addr);
+        if (!phase){
+            data = 0x1FF;
+            for (j=0; j<2050; j=j+1){
+                mPut(data,addr);
             }
         }
 
-        for (j=0; j<100; j=j+1){
-            data = ( (0 << 10) | (1 << 9) | (0x1ff) );
-            mPut(data, addr);
-        }
-        
-        for(j=0; j<300; j=j+1){
-            data = ( (0 << 10) | (0 << 9) | (input_neurons[7] & 0xff) );
-            mPut(data, addr);
+        // phase 2
+        if (phase){
+            for (j=0; j<16; j=j+1){
+                for(k=0; k<10; k=k+1){
+                    data =  ((0 << 10) | (0 << 9) | (input_neurons[j] & 0xff));
+                    mPut(data, addr);
+                }
+            }
+
+            for (j=0; j<100; j=j+1){
+                data = ( (0 << 10) | (1 << 9) | (0x1ff) );
+                mPut(data, addr);
+            }
+            
+            for(j=0; j<300; j=j+1){
+                data = ( (0 << 10) | (0 << 9) | (input_neurons[7] & 0xff) );
+                mPut(data, addr);
+            }
         }
     }
     

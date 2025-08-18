@@ -37,7 +37,8 @@ module acc_modin#(
    parameter BWB               = BW/8,
    parameter NOC_BUFFER_ADDR_W =  8,
    parameter N = 256,
-   parameter M = 8
+   parameter M = 8,
+   parameter SCRATCHPAD_SIZE = (4*1024)
 )(
   //---Clock and Reset---//
    input  logic       clk_ctrl,
@@ -76,19 +77,6 @@ logic [BWB-1:0] stream_in_TKEEP_int;
 logic           stream_in_TLAST_int;
 logic           stream_in_TREADY_int; 
 
- //AER interface signals
-logic AEROUT_ACK; 
-wire AEROUT_REQ;
-
-always_ff @(posedge clk_ctrl or posedge clk_ctrl_rst_high) begin 
-   if (clk_ctrl_rst_high) begin 
-      AEROUT_ACK <= 1'b0;
-   end
-   else begin 
-      AEROUT_ACK <= AEROUT_REQ;
-   end
-end
-
 //- Memory and Memory Manager
 (*mark_debug = "true" *) logic [BW-1:0] mm_mem_rdata;
 (*mark_debug = "true" *) logic [BW-1:0] mm_mem_wdata;
@@ -101,6 +89,14 @@ logic  [BW-1:0] stream_out_TDATA_int;
 logic [BWB-1:0] stream_out_TKEEP_int; 
 logic           stream_out_TLAST_int;
 logic           stream_out_TREADY_int;
+
+logic [11:0] scratchpad_counter;
+logic [31:0] scratchpad_write_addr;
+
+wire [7:0] AEROUT_ADDR; 
+wire AEROUT_REQ;
+wire AEROUT_ACK;
+wire spy_idle;
 
 logic rvRstN;
 
@@ -145,12 +141,13 @@ noc_decoder#(
    .stream_in_TKEEP   (stream_in_TKEEP_int), 
    .stream_in_TLAST   (stream_in_TLAST_int),
    .stream_in_TREADY  (stream_in_TREADY_int),
+
    //- Output Interface: Switch reading from memory manager
-   .stream_out_TREADY (stream_out_TREADY_int),
-   .stream_out_TVALID (stream_out_TVALID_int),
-   .stream_out_TDATA  (stream_out_TDATA_int),
-   .stream_out_TKEEP  (stream_out_TKEEP_int),
-   .stream_out_TLAST  (stream_out_TLAST_int),
+   .stream_out_TREADY (1'b1), // 1 'b1
+   .stream_out_TVALID (), // stream_out_TVALID_int
+   .stream_out_TDATA  (), // stream_out_TDATA_int
+   .stream_out_TKEEP  (), // stream_out_TKEEP_int
+   .stream_out_TLAST  (), // stream_out_TLAST_int
    // 
    .unblock           (),
    .spy_idle          (1'b1),
@@ -174,51 +171,81 @@ tinyMODIN #(
   .N     (N),
   .M     (M)
 ) tinyMODIN_inst (
-  .CLK   (clk_ctrl),
-  .RST   (clk_ctrl_rst_high),
-  .mem_valid_axi    (mem_valid_axi),
-  .mem_addr_axi    (mem_addr_axi),
-  .mem_wdata_axi  (mem_wdata_axi),  
-  .mem_wstrb_axi   (mem_wstrb_axi),
-  .mem_rdata_axi  (mem_rdata_axi),
-  .rvControl      (rvControl),
+   .CLK   (clk_ctrl),
+   .RST   (clk_ctrl_rst_high),
+   .mem_valid_axi    (mem_valid_axi),
+   .mem_addr_axi    (mem_addr_axi),
+   .mem_wdata_axi  (mem_wdata_axi),  
+   .mem_wstrb_axi   (mem_wstrb_axi),
+   .mem_rdata_axi  (mem_rdata_axi),
+   .rvControl      (rvControl),
 
   // message passing interface!
-  // .AERIN_ADDR     (mm_mem_addr[9:0]),  (changed)
-  .AERIN_ADDR        (mm_mem_wdata[9:0]),
-  .AERIN_REQ(mm_mem_valid & mm_mem_wstrb), 
-  .AERIN_ACK      (), // disconnected
-  .AEROUT_ADDR    (), // dc, work on later
-  .AEROUT_REQ     (AEROUT_REQ),
-  .AEROUT_ACK     (AEROUT_ACK), 
-  .SCHED_FULL      ()
+   .AERIN_ADDR        (mm_mem_wdata[9:0]),
+   .AERIN_REQ(mm_mem_valid & mm_mem_wstrb), 
+   .AERIN_ACK      (), // disconnected
+
+   // .AEROUT_ADDR(mem_wdata_rv[7:0]),  // dc, work on later , addr of req sent to data
+   // .AEROUT_REQ(mem_valid_rv), // aerout req, valid and wstrb
+   // .AEROUT_ACK(mem_wstrb_rv), // ready?
+
+   .AEROUT_ADDR    (AEROUT_ADDR), // AEROUT_ADDR
+   .AEROUT_REQ     (AEROUT_REQ), // AEROUT_REQ
+   .AEROUT_ACK     (AEROUT_ACK),  // AEROUT_ACK
+   .SCHED_FULL     ()
 );
 
 //////////////////////////////
 // Buffer NoC data
 //////////////////////////////
 
-noc_buffer_out#(
-   .BW (BW),
-   .ADDR_W (NOC_BUFFER_ADDR_W)
-) noc_buffer_out(
-   .clk_in            (clk_ctrl),
-   .clk_in_rst_low    (clk_ctrl_rst_low),
-   .clk_in_rst_high   (clk_ctrl_rst_high),
-   .clk_out           (clk_line),
-   .clk_out_rst_low   (clk_line_rst_low),
-   .stream_in_TVALID  (stream_out_TVALID_int),
-   .stream_in_TDATA   (stream_out_TDATA_int),
-   .stream_in_TKEEP   (stream_out_TKEEP_int),
-   .stream_in_TLAST   (stream_out_TLAST_int),
-   .stream_in_TREADY  (stream_out_TREADY_int),
+mem_spy#(
+   .NOC_BUFFER_ADDR_W(NOC_BUFFER_ADDR_W),
+   .XY_SZ(XY_SZ),
+   .OFFSET_SZ(OFFSET_SZ)  
+) mem_spy(
+   .clk_ctrl          (clk_ctrl),
+   .clk_ctrl_rst_low    (clk_ctrl_rst_low),
+   .clk_ctrl_rst_high   (clk_ctrl_rst_high),
+   .clk_line           (clk_line),
+   .clk_line_rst_low   (clk_line_rst_low),
+   .HsrcId(HsrcId),
+
+   .mem_ready_rv(AEROUT_ACK), // AEROUT_ACK
+   .mem_addr_rv(scratchpad_write_addr), // scratchpad_write_addr
+   .mem_wdata_rv({24'b0, AEROUT_ADDR}), // AEROUT_ADDR
+   .mem_wstrb_rv(AEROUT_REQ), // AEROUT_REQ
+   .mem_valid_rv(AEROUT_REQ), // AEROUT_REQ
+
+   .unblock(AEROUT_REQ),
+   .spy_idle(), 
+   .local_mem(1'b0),
+
+   .stream_out_TREADY (stream_out_TREADY), // stream_out_TREADY
    .stream_out_TVALID (stream_out_TVALID),
    .stream_out_TDATA  (stream_out_TDATA),
    .stream_out_TKEEP  (stream_out_TKEEP),
-   .stream_out_TLAST  (stream_out_TLAST),
-   .stream_out_TREADY (stream_out_TREADY)
+   .stream_out_TLAST  (stream_out_TLAST)
 );
 
+logic [31:0] tile_addr;
+assign tile_addr = 8 << 12;
+assign scratchpad_write_addr = tile_addr | scratchpad_counter;
+
+always_ff @(posedge clk_ctrl or posedge clk_ctrl_rst_high) begin
+   if (clk_ctrl_rst_high) begin
+      scratchpad_counter <= 'd0;
+   end 
+   else begin
+      if (AEROUT_ACK && AEROUT_REQ) begin
+         if (scratchpad_counter == SCRATCHPAD_SIZE - 1) begin
+            scratchpad_counter <= 12'd0;
+         end 
+         else begin
+            scratchpad_counter <= scratchpad_counter + 12'd1;
+         end
+      end
+   end
+end
 
 endmodule
-

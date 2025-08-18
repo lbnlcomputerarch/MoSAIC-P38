@@ -170,7 +170,7 @@ module tinyMODIN #(
         .clk(CLK),
         .rst(RST),
 
-        // MoSAIC Interface 
+        // MoSAIC Interface ------------------------------------------
         .mem_valid_axi(mem_valid_axi),
         .mem_addr_axi(mem_addr_axi),
         .mem_wdata_axi(mem_wdata_axi),
