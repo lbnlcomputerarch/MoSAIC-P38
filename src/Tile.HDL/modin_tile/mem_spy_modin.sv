@@ -24,13 +24,13 @@
 ////////////////////////////////////////////////
 // Author      : Patricia Gonzalez-Guerrero
 // Date        : Sept 29 2022
-// Description : Spy processor-memory interface
-// File        : mem_spy.sv
+// Description : Spy processor-memory interface, MODIFIED for MoDIN
+// File        : mem_spy_modin.sv
 ////////////////////////////////////////////////
 
 `timescale 1 ps/ 1 ps
 
-module mem_spy#(
+module mem_spy_modin #(
    parameter NOC_BUFFER_ADDR_W = 8,
    parameter XY_SZ = 3,
    parameter OFFSET_SZ=12
@@ -141,13 +141,15 @@ always @( * ) begin
       end
       MIO_WAIT:begin //2
         if (unblock) begin
-          nextState4 = MIO_IDLE;
+          nextState4 = MIO_READY; // changed, used to be MIO_IDLE
           next_mem_ready_rv = 1'b1;
         end
       end
       MIO_READY:begin //3
-          next_mem_ready_rv = 1'b1;
-          nextState4 = MIO_IDLE;
+         if (!mem_valid_rv) begin // only leaves when AEROUT_REQ goes high
+            next_mem_ready_rv = 1'b1;
+            nextState4 = MIO_IDLE;
+         end
       end
    endcase
 end

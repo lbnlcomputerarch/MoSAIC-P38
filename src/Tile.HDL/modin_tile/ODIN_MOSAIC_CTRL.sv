@@ -45,7 +45,7 @@ localparam  GATE_ACTIVITY_ENABLE = 16'd0,
             MAX_NEUR_ENABLE = 16'd3;
 
 wire ns_wPre, ns_rPre, ns_OP;
-wire [19:0] ODINAddr; // replaces csrAddr , BUT NOW needs to replace mem_addr
+wire [19:0] ODINAddr;
 wire [31:0] ODIN_wdata;
 logic [31:0] ODIN_data_out_mux; // mux to determine neuron or synapse data output to csrDOut
 
@@ -83,8 +83,8 @@ Register #(
     .Set(       1'b0),
     .Enable(    mem_valid_axi & mem_wstrb_axi  & ns_OP),
     .In(        mem_wdata_axi[2*M-1:0]),
-    .Out(       CTRL_PROG_DATA) // is ODIN okay with this constantly changing!?!?! vs freeze when not using
-); // might blowup if config registers used
+    .Out(       CTRL_PROG_DATA)
+);
 
 assign CTRL_READBACK_EVENT = ODINAddr[19];
 assign CTRL_PROG_EVENT = ODINAddr[18];
@@ -158,20 +158,6 @@ always @(*) begin
   endcase
 end
  
-/* // might be causing an unnecessary clock cycle delay
-Register # (
-  .Width(             32)
-)
-dout_inst (
-  .Clock(             clk),
-  .Reset(             rst),
-  .Set(               1'b0),
-  .Enable(            1'b1), // always reading, make sure to change if needed (only read when asked)
-  .In(                ODIN_data_mux),  
-  .Out(               mem_rdata_axi) 
-);  */
-
 assign mem_rdata_axi = ODIN_data_out_mux;
 
-
-endmodule // EOF
+endmodule
