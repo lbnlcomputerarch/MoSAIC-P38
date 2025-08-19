@@ -228,13 +228,13 @@ logic [31:0] tile_addr;
 assign tile_addr = 8 << 12;
 assign scratchpad_write_addr = tile_addr | scratchpad_counter;
 
-always_ff @(posedge clk_ctrl or posedge clk_ctrl_rst_high) begin
-   AEROUT_ACK_prev <= AEROUT_ACK;
-   
+always_ff @(posedge clk_ctrl or posedge clk_ctrl_rst_high) begin   
    if (clk_ctrl_rst_high) begin
       scratchpad_counter <= 'd0;
+      AEROUT_ACK_prev <= 1'b0;
    end 
    else begin
+      AEROUT_ACK_prev <= AEROUT_ACK;
       if (AEROUT_ACK && AEROUT_REQ && (AEROUT_ACK != AEROUT_ACK_prev)) begin
          if (scratchpad_counter == SCRATCHPAD_SIZE - 1) begin
             scratchpad_counter <= 12'd0;
