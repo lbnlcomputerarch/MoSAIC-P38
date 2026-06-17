@@ -40,7 +40,7 @@ use strict;
 #- Global variables: Modify maybe
 ##################################
 
-our $MosaicGlobal = "/home/lg4er/MosaicGlobal"; #FIXME: delete
+our $MosaicGlobal = "externals"; #FIXME: delete
 our $vivado_version = "2022.2";                 #FIXME: delete
 
 #- Set by open nic shell. Can be modified

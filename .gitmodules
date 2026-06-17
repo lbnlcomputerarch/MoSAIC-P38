@@ -1,0 +1,6 @@
+[submodule "externals/open-nic-shell"]
+	path = externals/open-nic-shell
+	url = https://github.com/Xilinx/open-nic-shell.git
+[submodule "externals/xilinx_dram_model"]
+	path = externals/xilinx_dram_model
+	url = https://github.com/lbnlmosaic/xilinx_dram_model.git
