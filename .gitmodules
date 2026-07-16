@@ -1,6 +1,3 @@
-[submodule "externals/open-nic-shell"]
-	path = externals/open-nic-shell
-	url = https://github.com/lbnlmosaic/open-nic-shell-lbnl.git
-[submodule "externals/xilinx_dram_model"]
-	path = externals/xilinx_dram_model
-	url = https://socks.lbl.gov/cag/xilinx_dram_model
+[submodule "externals/open-nic-shell-lbnl"]
+	path = externals/open-nic-shell-lbnl
+	url = https://github.com/lbnlmosaic/open-nic-shell-lbnl
