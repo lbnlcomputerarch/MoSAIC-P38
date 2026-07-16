@@ -21,13 +21,8 @@
 #
 # *************************************************************************
 #!/usr/local/bin/perl
-##################################################
-# Notes: 
-#  FIXME: The MosaicGlobal directory contains
-#         the xilinx memory model and the Vivado 
-#         boards repository downloaded through 
-#         open-nic-shell
 ###################################################
+
 package gen_mosaic;
 require Exporter;
 @ISA = qw(Exporter);
@@ -40,7 +35,7 @@ use strict;
 #- Global variables: Modify maybe
 ##################################
 
-our $MosaicGlobal = "externals"; #FIXME: delete
+# MosaicGlobal no longer exists, parameter mosaic_externals was created in gen_vivado_script, path of external (board) files is configured there.
 our $vivado_version = "2022.2";                 #FIXME: delete
 
 #- Set by open nic shell. Can be modified
@@ -370,7 +365,7 @@ sub gen_vivado_script{
    open (my $FH, '>', $file ) or die "Couldn't open file $file !$.\n";
    my %board = %{$board_info{$param{'board'}}};
    #- Create the project
-   print $FH "set_param board.repoPaths \"$MosaicGlobal/open-nic-shell/board_files\"\n"; #- FIXME
+   print $FH "set_param board.repoPaths \"$param{'mosaic_externals'}/open-nic-shell-lbnl/board_files\"\n";
    print $FH "create_project -force mosaic $param{'launch_path'}/mosaic -part $board{'part'}\n";
    #- Set the board
    print $FH "set_property board_part $board{'board_part'} [current_project]\n";
@@ -378,7 +373,7 @@ sub gen_vivado_script{
    print $FH "set_property include_dirs \"$param{'build_path'}\" [current_fileset]\n";
    print $FH "add_files -scan_for_includes $param{'mosaic_path'}/src\n";
    if ($param{'vivado_ip_dram'}){
-      print $FH "add_files -scan_for_includes $MosaicGlobal/xilinx_dram_model\n"; #- FIXME
+      print $FH "add_files -scan_for_includes $param{'mosaic_externals'}/xilinx_dram_model\n";
       print $FH "source $param{'mosaic_path'}/tools/vivado_scripts/memory_ctrl_etc_$param{'board'}_${vivado_version}.tcl\n";
       #print $FH "source $param{'mosaic_path'}/tools/vivado_scripts/fifo_generator_v2.tcl\n"; #FIXME
    }
@@ -417,7 +412,6 @@ sub gen_vivado_script{
 sub check_params{
   my %param = %{$_[0]};
 
-  
   if (exists $param{'r'}){
     print "INFO: Number of rows in the array: $param{'r'}\n";
   }else{
@@ -438,8 +432,6 @@ sub check_params{
   ######################################
   # Go through each parameter one by one
   ######################################
-
-
 
   if (exists $param{'vivado'}){
     print "INFO: Setting up the files for Vivado\n";
@@ -462,12 +454,18 @@ sub check_params{
   if (exists $param{'mosaic_path'}){
   }else{
     my $dir = getcwd;
-    $param{'mosaic_path'} = "$dir/../.."; #- FIXME
+    $param{'mosaic_path'} = "$dir/../.."; #- FIXME !!!!!
     print "INFO: Mosaic path: $param{'mosaic_path'}\n";
   }
   if (-e $param{'mosaic_path'}){
   }else{
     die "ERROR: Directory $param{'mosaic_path'} does not exist\n";
+  }
+  #- Mosaic externals path
+  if (exists $param{'mosaic_externals'}){
+  }else{
+    $param{'mosaic_externals'} = "$param{'mosaic_path'}/externals";
+    print "INFO: Mosaic externals path: $param{'mosaic_externals'}\n";
   }
 
   #- This shouldn't be a parameter
