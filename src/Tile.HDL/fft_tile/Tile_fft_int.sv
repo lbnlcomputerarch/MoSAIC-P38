@@ -182,7 +182,7 @@ acc_fft_sw32#(
 
 tile_noc#(
   .BW (BW)
-tile_noc (
+) tile_noc (
    .HsrcId                       ({myY_line,myX_line}),
    .stream_in_TVALID             (stream_in_TVALID),
    .stream_in_TREADY             (stream_in_TREADY),

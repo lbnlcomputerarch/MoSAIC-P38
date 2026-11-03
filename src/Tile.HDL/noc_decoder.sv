@@ -190,7 +190,7 @@ always @( * ) begin
 
    stream_out_TVALID = 1'b0;
    stream_out_TLAST  = 1'b0;
-   stream_out_TKEEP  = 4'hF;
+   stream_out_TKEEP  = {BWB{1'b1}};
    stream_out_TDATA  =  'h0;
 
    stream_in_TREADY = 1'b1;
@@ -268,7 +268,7 @@ always @( * ) begin
       end
       MEM_WR_ACK:begin //- MSTORE (Write and send ACK)
           stream_out_TVALID = 1'b1;
-          stream_out_TKEEP  = 4'hF;
+          stream_out_TKEEP  = {BWB{1'b1}};
           stream_out_TDATA  = noc_out_header1a;
           stream_in_TREADY = 1'b0;
           nextState1   = WAIT_SEND;
@@ -294,7 +294,7 @@ always @( * ) begin
                next_noc_data_in = stream_in_TDATA;
                stream_out_TVALID = 1'b1;
                stream_out_TLAST  = 1'b0;
-               stream_out_TKEEP  = 4'hF;
+               stream_out_TKEEP  = {BWB{1'b1}};
                stream_out_TDATA  = noc_out_header1a;
 
                if (hl_reg)
@@ -309,7 +309,7 @@ always @( * ) begin
       MEM_RD2: begin //-B
          stream_out_TVALID = 1'b1;
          stream_out_TLAST  = 1'b0;
-         stream_out_TKEEP  = 4'hF;
+         stream_out_TKEEP  = {BWB{1'b1}};
          stream_out_TDATA  = noc_data_in;
          if (stream_out_TREADY) begin
             nextState1 = WAIT_SEND;

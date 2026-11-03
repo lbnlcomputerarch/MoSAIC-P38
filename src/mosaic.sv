@@ -313,7 +313,7 @@ generate
       assign tile_S_AXI_WSTRB[i*COL+j] = tile_S_AXI_WSTRB_v[(BWB_AXI*((i*COL+j)+1))-1:BWB_AXI*(i*COL+j)]; 
       assign tile_S_AXI_BRESP_v[(2*((i*COL+j)+1))-1:2*(i*COL+j)] = tile_S_AXI_BRESP[i*COL+j]; 
       assign tile_S_AXI_ARADDR[i*COL+j]= tile_S_AXI_ARADDR_v[(AXI_OUTADR*((i*COL+j)+1))-1:AXI_OUTADR*(i*COL+j)]; 
-      assign tile_S_AXI_RDATA_v[(BW*((i*COL+j)+1))-1:BW*(i*COL+j)]=tile_S_AXI_RDATA[i*COL+j]; 
+      assign tile_S_AXI_RDATA_v[(BW_AXI*((i*COL+j)+1))-1:BW_AXI*(i*COL+j)]=tile_S_AXI_RDATA[i*COL+j]; 
       assign tile_S_AXI_RRESP_v[(2*((i*COL+j)+1))-1:2*(i*COL+j)]=tile_S_AXI_RRESP[i*COL+j]; 
       
       //- Connections
@@ -574,7 +574,7 @@ S_CONTROLLER_USS#(
   assign tile_S_AXI_WSTRB[TILES] = tile_S_AXI_WSTRB_v[(BWB_AXI*(TILES+1))-1:BWB_AXI*TILES]; 
   assign tile_S_AXI_BRESP_v[(2*(TILES+1))-1:2*TILES] = tile_S_AXI_BRESP[TILES]; 
   assign tile_S_AXI_ARADDR[TILES]= tile_S_AXI_ARADDR_v[(AXI_OUTADR*(TILES+1))-1:AXI_OUTADR*TILES]; 
-  assign tile_S_AXI_RDATA_v[(BW*(TILES+1))-1:BW*TILES]=tile_S_AXI_RDATA[TILES]; 
+  assign tile_S_AXI_RDATA_v[(BW_AXI*(TILES+1))-1:BW_AXI*TILES]=tile_S_AXI_RDATA[TILES]; 
   assign tile_S_AXI_RRESP_v[(2*(TILES+1))-1:2*TILES]=tile_S_AXI_RRESP[TILES];
 
   S_RESETTER_control S_RESET_clk_memory(

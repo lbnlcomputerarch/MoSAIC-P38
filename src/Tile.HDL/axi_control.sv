@@ -159,7 +159,7 @@ always @( posedge clk_line ) begin
     rxPacketCount <= 'd0;
     rxByteCount   <= 'd0;
   end else if (stream_out_TVALID && stream_out_TREADY) begin 
-    rxByteCount <= rxByteCount+'d4;
+    rxByteCount <= rxByteCount+BWB;
     if (stream_out_TLAST) rxPacketCount <= rxPacketCount+'d1;
   end
 end 
