@@ -83,6 +83,7 @@ logic stream_out_TVALID_int;
 logic   [31:0] stream_out_TDATA_int; 
 logic stream_out_TLAST_int;
 logic [3:0] stream_out_TKEEP_int;
+logic stream_out_TREADY_int;
 
 logic [31:0] mem_header;
 logic [OFFSET_SZ-1:0] mem_offset;

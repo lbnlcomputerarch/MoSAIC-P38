@@ -139,6 +139,7 @@ logic inst_q_put_d;
 logic inst_m_put_h;
 logic inst_m_put_d;
 logic inst_m_get_h; //Jul 14 2023
+logic inst_m_get_d; //Jul 14 2023
 
 logic inst_m_put_r;
 logic inst_m_get_r; 
@@ -164,11 +165,13 @@ logic stream_out_pcpi_TVALID_int;
 logic   [31:0] stream_out_pcpi_TDATA_int; 
 logic stream_out_pcpi_TLAST_int;
 logic [3:0] stream_out_pcpi_TKEEP_int;
+logic stream_out_pcpi_TREADY_int;
 
 logic stream_out_mem_TVALID_int;
 logic   [31:0] stream_out_mem_TDATA_int; 
 logic stream_out_mem_TLAST_int;
 logic [3:0] stream_out_mem_TKEEP_int;
+logic stream_out_mem_TREADY_int;
 
 logic [OFFSET_SZ-1:0] pcpi_offset_short; //- Header fields
 logic      [XY_SZ-1:0] pcpi_x_dest;

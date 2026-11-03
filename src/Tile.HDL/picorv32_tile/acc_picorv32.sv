@@ -322,6 +322,8 @@ Register #(
 
 `else
 
+logic mem_ready_local_rv;
+
 assign local_mem = is_array & mem_addr_xy == HsrcId;
 
 assign mem_rdata_a = mem_rdata_data_a;

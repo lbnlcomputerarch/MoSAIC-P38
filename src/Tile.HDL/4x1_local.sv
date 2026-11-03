@@ -246,6 +246,10 @@ localparam BUFFER_DATA_SZ = BWB + BW + 1 + 3;
 logic [BUFFER_DATA_SZ-1:0] dout;
 logic [BUFFER_DATA_SZ-1:0] dout2;
 
+logic granted;
+logic full;
+logic empty;
+
 assign stream_in_TREADY = ~full;
 
 logic granted_d;
@@ -278,8 +282,6 @@ logic [2:0] tdest_r;
 
 logic [1:0] state;
 logic [1:0] next_state;
-
-logic granted;
 
 generate
    if (DISPATCHER) begin
