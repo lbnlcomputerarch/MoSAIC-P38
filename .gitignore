@@ -1,0 +1,23 @@
+# Generated build files (gen_mosaic.pm output)
+build/
+shell/fpga/mosaic_setup.h
+
+# Icarus simulation artifacts (generated from file_list_template.txt)
+icarus/file_list.txt
+icarus/tile_*.dat
+*.vvp
+*.vcd
+
+# Simulation / synthesis logs and databases
+*.log
+*.jou
+*.str
+*.wdb
+*.wcfg.bak
+
+# Editor / OS noise
+*~
+.DS_Store
+
+# Agent workspace
+.private-journal/
