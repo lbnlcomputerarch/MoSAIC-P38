@@ -651,7 +651,7 @@ sub gen_tiles{
   #- For new tiles
   my %param = %{$_[0]};
   
-  my $new_id = 3;
+  my $new_id = 4;   #- 0..3 are the built-in tile types; 3 = pico64 (F7: seed past it)
   if (exists $param{'new_tile'}){
     my %new_tile = %{$param{'new_tile'}};
     foreach my $key (keys %new_tile){
@@ -881,11 +881,17 @@ sub gen_pico_testcase{
             }elsif ($type eq 'pico64'){
                #- pico64 firmware lives in its own directory (plan D15);
                #- 64-bit-word hex ($readmemh into DPRAM_BE, plan D24 code64 format)
+               #- NOTE: always reads picorv64_tile/firmware/ regardless of
+               #- $param{'firmware_path'} (intentional per plan D15/D21, review F7).
                $full_path2 = "$param{'mosaic_path'}/src/Tile.HDL/picorv64_tile/firmware/${file}";
                if (-e $full_path2){
                   if ($init_axi){
-                     print $FH "\t\$display(\"Writing tile $i,$j\");\n";
-                     print $FH "\tinitialize_mem_tile_AXI(\"$full_path2\",$adr);\n\n"; #FIXME: adr
+                     #- initialize_mem_tile_AXI reads one word32 per line
+                     #- (tb_mosaic.sv); the pico64 hex format is one
+                     #- 64-bit word per line (D24), which would truncate
+                     #- to its low half and land at half the intended
+                     #- address - silently garbled firmware (review F3).
+                     die "ERROR: init_mem_tile_axi is not supported for pico64 tiles: the AXI loader consumes 32-bit-word hex, but pico64 firmware is 64-bit-word hex (D24). Use the \$readmemh path (omit init_mem_tile_axi).\n";
                   }else{
                      print $FH "\t\$readmemh(\"$full_path2\", mosaic.row[$i].col[$j].${type}.tile_inst.acc_picorv64.dp_ram_be.mem);\n\n";
                   }

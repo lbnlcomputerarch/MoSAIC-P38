@@ -27,7 +27,7 @@ ports are ignored (simple `mem_valid/ready` handshake).
 Pico64 local memory is 2048 x 64-bit words = **16 KB** (legacy per-tile
 window is 4096 32-bit words; all MoSAIC addresses are 32-bit-word units).
 AXI preload uses `mem_addr_axi[0]` as half-select and
-`mem_addr_axi[OFFSET_SZ:1]` = `[12:1]` as the 64-bit word index.
+`mem_addr_axi[OFFSET_SZ:1]` = `[11:1]` as the 64-bit word index.
 
 ## Shared modules
 

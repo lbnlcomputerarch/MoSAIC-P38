@@ -38,6 +38,9 @@
 //    MEMSIZE_KB*1024/(DATA_W/8)), not in 32-bit words.
 //  - Port-vector convention matches DPRAM.sv: {portB, portA} on clk/rst_n/en/
 //    wstrb/addr/din; dout = {douta, doutb}.
+//  - Difference from DPRAM.sv (review F4): reads are en-gated. dout holds
+//    its value while en is low; DPRAM.sv reads every cycle. Consumers that
+//    assume DPRAM's always-read semantics must hold en high.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 module DPRAM_BE #(
@@ -68,11 +71,11 @@ wire               ena, enb;
    //- TBD: Add SRAM macro with byte enables
 `else
 
-reg  [DATA_W-1:0]  mem [(MAX_ADDRESS)-1:0];
+reg  [DATA_W-1:0]  mem [MAX_ADDRESS:0];   //- MEMSIZE_KB*1024/BWB entries (F1: was [(MAX_ADDRESS)-1:0], one short)
 
 //- Only for simulation
 integer            i;
-initial for (i=0; i< (MAX_ADDRESS); i=i+1) mem[i] = 0;
+initial for (i=0; i<=MAX_ADDRESS; i=i+1) mem[i] = 0;
 
 assign clka   = clk[0];
 assign ena    = en[0];

@@ -210,6 +210,8 @@ assign stream_out_TREADY_int = stream_out_TREADY;
 
 DPRAM_BE #(
   .ADDR_W     (MEM_ADDR_W),
+  //- Memory is 64-bit wide regardless of the tile's BW parameter: this
+  //- tile is BW=64-only (plan D17) and the core is RV64 (review F5).
   .DATA_W     (64),
   .MEMSIZE_KB (16)
 ) dp_ram_be (

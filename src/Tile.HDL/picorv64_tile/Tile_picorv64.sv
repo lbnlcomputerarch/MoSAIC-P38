@@ -26,7 +26,7 @@
 // Email       : lg4er@lbl.gov
 // Date        : November 3 2026
 // Description : PICORV64 Tile (pico64) 
-// File        : Tile_picorv32.sv
+// File        : Tile_picorv64.sv
 // Notes       :
 //  - Modified on April 19 2023 for NxN Mosaic.
 ////////////////////////////////////////////////
