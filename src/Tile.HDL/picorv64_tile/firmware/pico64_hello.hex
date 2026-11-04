@@ -1,0 +1,7 @@
+// pico64 hello/bring-up firmware (Phase 3 Task 5): sd 0xCAFEBABEDEADBEEF to byte 64, spin
+// RV64IM, 32-bit insns only; one 64-bit memory word per line (word64 index = line)
+EEF28293DEADC2B7
+0202D29302029293
+ABE38393CAFEC3B7
+0053033302039313
+0000006F04603023

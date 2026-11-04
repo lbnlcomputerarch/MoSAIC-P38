@@ -51,7 +51,8 @@ our $axi_ux_addr         = 4;
 
 our %tile_type = ( 'pico' => [0, 'Tile_picorv32'],
                    'spad' => [1, 'Tile_scratchpad'], #- Scratchpad
-                   'loop' => [2, 'Tile_loop']
+                   'loop' => [2, 'Tile_loop'],
+                   'pico64' => [3, 'Tile_picorv64']  #- RV64 tile (Phase 3, plan D21)
                  );
 
 my %u280 = ('part'       => 'xcu280-fsvh2892-2L-e',
@@ -737,6 +738,8 @@ sub gen_checker{ #- FIXME: how to generalize?
       foreach my $item (@{$row}){
          if (${item} eq 'pico'){
             print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].pico.tile_inst.acc_picorv32.dp_ram.mem);\n";
+         }elsif (${item} eq 'pico64'){
+            print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].pico64.tile_inst.acc_picorv64.dp_ram_be.mem);\n";
          }elsif (${item} eq 'spad'){
            print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].spad.tile_inst.acc_scratchpad.dp_ram.mem);\n";
          }else{
@@ -871,6 +874,20 @@ sub gen_pico_testcase{
                      print $FH "\tinitialize_mem_tile_AXI(\"$full_path2\",$adr);\n\n"; #FIXME: adr
                   }else{
                      print $FH "\t\$readmemh(\"$full_path2\", mosaic.row[$i].col[$j].${type}.tile_inst.acc_picorv32.dp_ram.mem);\n\n";
+                  }
+               }else{
+                  die "ERROR: $full_path2 file does not exist\n";
+               }
+            }elsif ($type eq 'pico64'){
+               #- pico64 firmware lives in its own directory (plan D15);
+               #- 64-bit-word hex ($readmemh into DPRAM_BE, plan D24 code64 format)
+               $full_path2 = "$param{'mosaic_path'}/src/Tile.HDL/picorv64_tile/firmware/${file}";
+               if (-e $full_path2){
+                  if ($init_axi){
+                     print $FH "\t\$display(\"Writing tile $i,$j\");\n";
+                     print $FH "\tinitialize_mem_tile_AXI(\"$full_path2\",$adr);\n\n"; #FIXME: adr
+                  }else{
+                     print $FH "\t\$readmemh(\"$full_path2\", mosaic.row[$i].col[$j].${type}.tile_inst.acc_picorv64.dp_ram_be.mem);\n\n";
                   }
                }else{
                   die "ERROR: $full_path2 file does not exist\n";

@@ -38,6 +38,7 @@
 ../src/SOP.HDL/SOP.v
 ../src/Common.HDL/Register.v
 ../src/Common.HDL/DPRAM.sv
+../src/Common.HDL/DPRAM_BE.sv
 ../src/S_RESETTER.HDL/S_RESETTER_control.v
 ../src/S_RESETTER.HDL/S_RESETTER_line.v
 ../src/Tile.HDL/fifo_generator_0.sv
@@ -54,6 +55,9 @@
 ../src/Tile.HDL/picorv32_tile/picorv32.v
 ../src/Tile.HDL/picorv32_tile/acc_picorv32.sv
 ../src/Tile.HDL/picorv32_tile/Tile_picorv32.sv
+../src/Tile.HDL/picorv64_tile/picorv64.v
+../src/Tile.HDL/picorv64_tile/acc_picorv64.sv
+../src/Tile.HDL/picorv64_tile/Tile_picorv64.sv
 ../src/Tile.HDL/scratchpad_tile/acc_scratchpad.sv
 ../src/Tile.HDL/scratchpad_tile/Tile_scratchpad.sv
 ../src/Tile.HDL/loop_tile/acc_loop.sv
