@@ -166,7 +166,9 @@ axi_control#(
 acc_picorv32#(
    .OFFSET_SZ         (OFFSET_SZ),
    .XY_SZ             (XY_SZ),
-   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W)
+   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W),
+   .BW                (BW),
+   .BWB               (BWB)
 ) acc_picorv32 (
    //- Clock and reset
    .clk_ctrl          (clk_control),

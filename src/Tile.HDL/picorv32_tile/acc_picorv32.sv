@@ -31,6 +31,8 @@
 `timescale 1 ps/ 1 ps
 
 module acc_picorv32#(
+   parameter BW  = 32,
+   parameter BWB = BW/8,
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3,
    parameter NOC_BUFFER_ADDR_W =  8,
@@ -419,7 +421,9 @@ picorv32#(
 qISAExtension#(
    .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W),
    .OFFSET_SZ         (OFFSET_SZ),
-   .XY_SZ             (XY_SZ)
+   .XY_SZ             (XY_SZ),
+   .BW                (BW),
+   .BWB               (BWB)
 ) qISAExtension_inst (
    //- Clock and reset
    .clk_ctrl         (clk_ctrl),

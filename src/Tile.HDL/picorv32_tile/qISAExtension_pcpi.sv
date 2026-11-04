@@ -32,6 +32,8 @@
 //---Interface with the processor---//
 
 module qISAExtension_pcpi#(
+   parameter BW  = 32,
+   parameter BWB = BW/8,
    parameter NOC_BUFFER_ADDR_W = 8,
    parameter OFFSET_SZ         = 12,
    parameter XY_SZ             =  3
@@ -46,29 +48,29 @@ module qISAExtension_pcpi#(
    //---Processor Interface---//
    input  logic        pcpi_valid,
    input  logic [31:0] pcpi_insn,
-   input  logic [31:0] pcpi_rs1,
-   input  logic [31:0] pcpi_rs2,
+   input  logic [BW-1:0] pcpi_rs1,
+   input  logic [BW-1:0] pcpi_rs2,
    output logic        pcpi_wr,
-   output logic [31:0] pcpi_rd,
+   output logic [BW-1:0] pcpi_rd,
    output logic        pcpi_wait,
    output logic        pcpi_ready,
    //---NOC interface---//
    //- Output Interface
    input  logic        stream_out_pcpi_TREADY,
    output logic        stream_out_pcpi_TVALID,
-   output logic [31:0] stream_out_pcpi_TDATA,
-   output logic [ 3:0] stream_out_pcpi_TKEEP,
+   output logic [BW-1:0] stream_out_pcpi_TDATA,
+   output logic [BWB-1:0] stream_out_pcpi_TKEEP,
    output logic        stream_out_pcpi_TLAST,
 
    input  logic        stream_out_mem_TREADY,
    output logic        stream_out_mem_TVALID,
-   output logic [31:0] stream_out_mem_TDATA,
-   output logic [ 3:0] stream_out_mem_TKEEP,
+   output logic [BW-1:0] stream_out_mem_TDATA,
+   output logic [BWB-1:0] stream_out_mem_TKEEP,
    output logic        stream_out_mem_TLAST,
 
    output logic        fifo_0B_en,
    output logic [31:0] fifo_0B_addr,
-   input logic [31:0]  fifo_0B_dout,
+   input logic [BW-1:0]  fifo_0B_dout,
    input logic         fifo_0_empty,
    input logic         fifo_0_full,
 
@@ -154,23 +156,23 @@ logic inst_m_get_d_r; //Jul 14 2023
 logic [2:0] pcpi_code;
 
 logic fifo_2B_en;
-logic [31:0] fifo_2B_din;
+logic [BW-1:0] fifo_2B_din;
 
 //- Preserve the instruction for further processing
 
-logic [31:0] pcpi_rs1_int;
-logic [31:0] pcpi_rs2_int;
+logic [BW-1:0] pcpi_rs1_int;
+logic [BW-1:0] pcpi_rs2_int;
 
 logic stream_out_pcpi_TVALID_int;
-logic   [31:0] stream_out_pcpi_TDATA_int; 
+logic   [BW-1:0] stream_out_pcpi_TDATA_int;
 logic stream_out_pcpi_TLAST_int;
-logic [3:0] stream_out_pcpi_TKEEP_int;
+logic [BWB-1:0] stream_out_pcpi_TKEEP_int;
 logic stream_out_pcpi_TREADY_int;
 
 logic stream_out_mem_TVALID_int;
-logic   [31:0] stream_out_mem_TDATA_int; 
+logic   [BW-1:0] stream_out_mem_TDATA_int;
 logic stream_out_mem_TLAST_int;
-logic [3:0] stream_out_mem_TKEEP_int;
+logic [BWB-1:0] stream_out_mem_TKEEP_int;
 logic stream_out_mem_TREADY_int;
 
 logic [OFFSET_SZ-1:0] pcpi_offset_short; //- Header fields
@@ -218,8 +220,8 @@ assign inst_q_get   = inst_valid & pcpi_insn[14:12] == QGET;   //- QM
 assign inst_q_put_h = inst_valid & pcpi_insn[14:12] == QPUT & pcpi_insn[26:25] == 1;   //- QM: long header long packet
 assign inst_q_put_d = inst_valid & pcpi_insn[14:12] == QPUT & pcpi_insn[26:25] == 2;   //- QM: data for long packet
 
-logic [7:0] pkt_size_qput;  //Jun 2023
-logic [7:0] next_pkt_size_qput; //Jun 2023
+logic [15:0] pkt_size_qput;  //Jun 2023
+logic [15:0] next_pkt_size_qput; //Jun 2023
 
 always @(posedge clk_ctrl or negedge clk_ctrl_rst_low) begin
    if (~clk_ctrl_rst_low) begin
@@ -293,7 +295,7 @@ always @( * ) begin
                     fifo_2B_din = pcpi_header;
                  else if (inst_q_put_h) begin //- Long header
                     pcpi_pkt_code = pcpi_rs2[3:0];
-                    next_pkt_size_qput = 1 << (pcpi_rs2-1);
+                    next_pkt_size_qput = 1 << (pcpi_rs2[3:0]-1);
                     fifo_2B_din = pcpi_header1;
                  end else //- Data for long header
                     fifo_2B_din = pcpi_rs1;
@@ -313,7 +315,7 @@ always @( * ) begin
                        next_pkt_size_qput = 1;
                     end else begin
                        pcpi_pkt_code = pcpi_rs2[3:0];
-                       next_pkt_size_qput = 1 << (pcpi_rs2-1);
+                       next_pkt_size_qput = 1 << (pcpi_rs2[3:0]-1);
                     end
                       stream_out_mem_TDATA_int = pcpi_header1;
                  end else //- Data for long header
@@ -405,6 +407,8 @@ end
 
 
 noc_buffer_out #(
+   .BW  (BW),
+   .BWB (BWB),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 )noc_buffer_out_mq(
    .clk_in            (clk_ctrl),
@@ -427,11 +431,13 @@ noc_buffer_out #(
 );
 
 assign stream_out_pcpi_TVALID_int = fifo_2B_en;
-assign stream_out_pcpi_TKEEP_int = 4'hF;
+assign stream_out_pcpi_TKEEP_int = {BWB{1'b1}};
 assign stream_out_pcpi_TDATA_int = fifo_2B_din;
 
 
 noc_buffer_out#(
+   .BW  (BW),
+   .BWB (BWB),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 ) noc_buffer_out_mm(
    .clk_in            (clk_ctrl),
@@ -450,7 +456,7 @@ noc_buffer_out#(
    .stream_in_TLAST   (stream_out_mem_TLAST_int),
    .stream_in_TREADY  (stream_out_mem_TREADY_int));
 
-assign stream_out_mem_TKEEP_int = 4'hF;
+assign stream_out_mem_TKEEP_int = {BWB{1'b1}};
 
 //- Short header
 assign pcpi_hl_short       = 1'b0;

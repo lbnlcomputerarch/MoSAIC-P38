@@ -31,6 +31,8 @@
 `timescale 1 ps/ 1 ps
 
 module mem_spy#(
+   parameter BW  = 32,
+   parameter BWB = BW/8,
    parameter NOC_BUFFER_ADDR_W = 8,
    parameter XY_SZ = 3,
    parameter OFFSET_SZ=12
@@ -44,16 +46,16 @@ module mem_spy#(
    input  logic [(XY_SZ*2)-1:0] HsrcId,     //- Tile identification
    output logic        mem_ready_rv,
    input  logic [31:0] mem_addr_rv,
-   input  logic [31:0] mem_wdata_rv, 
-   input  logic        mem_wstrb_rv, 
+   input  logic [BW-1:0] mem_wdata_rv,
+   input  logic        mem_wstrb_rv,
    input  logic        mem_valid_rv,
    input  logic        unblock,
    output logic        spy_idle,
    input logic         local_mem,
    input  logic        stream_out_TREADY,
    output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
+   output logic [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
    output logic        stream_out_TLAST
 );
 
@@ -80,9 +82,9 @@ logic [2:0] nextState4;
 logic next_mem_ready_rv;
 
 logic stream_out_TVALID_int;
-logic   [31:0] stream_out_TDATA_int; 
+logic   [BW-1:0] stream_out_TDATA_int;
 logic stream_out_TLAST_int;
-logic [3:0] stream_out_TKEEP_int;
+logic [BWB-1:0] stream_out_TKEEP_int;
 logic stream_out_TREADY_int;
 
 logic [31:0] mem_header;
@@ -153,9 +155,11 @@ always @( * ) begin
    endcase
 end
 
-assign stream_out_TKEEP_int = 4'hF;
+assign stream_out_TKEEP_int = {BWB{1'b1}};
 
 noc_buffer_out#(
+   .BW  (BW),
+   .BWB (BWB),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 ) noc_buffer_out(
    .clk_in            (clk_ctrl),

@@ -31,13 +31,15 @@
 `timescale 1 ps / 1 ps
 
 module qISAExtension#(
-   parameter OFFSET_SZ         = 11,
+   parameter BW  = 32,
+   parameter BWB = BW/8,
+   parameter OFFSET_SZ         = 12,
    parameter MQ_ADDR_W         =  9,
    parameter MQ_MEMSIZE_KB     =  2,  // Inbound FIFO size 2kB/4=512, 1<<9 = 512
    parameter NOC_BUFFER_ADDR_W =  8,
    parameter XY_SZ             =  3
 )(
-  //---Clock and Reset---//
+   //---Clock and Reset---//
    input  logic       clk_ctrl,
    input  logic       clk_line,
    input  logic       clk_ctrl_rst_low,
@@ -48,39 +50,39 @@ module qISAExtension#(
    //---Processor Interface---//
    input  logic        pcpi_valid,
    input  logic [31:0] pcpi_insn,
-   input  logic [31:0] pcpi_rs1,
-   input  logic [31:0] pcpi_rs2,
+   input  logic [BW-1:0] pcpi_rs1,
+   input  logic [BW-1:0] pcpi_rs2,
    output logic        pcpi_wr,
-   output logic [31:0] pcpi_rd,
+   output logic [BW-1:0] pcpi_rd,
    output logic        pcpi_wait,
    output logic        pcpi_ready,
    //---NOC interface---//
    //- Input Interface
    input  logic        stream_in_TVALID,
-   input  logic [31:0] stream_in_TDATA,
-   input  logic [ 3:0] stream_in_TKEEP, 
+   input  logic [BW-1:0] stream_in_TDATA,
+   input  logic [BWB-1:0] stream_in_TKEEP,
    input  logic        stream_in_TLAST,
-   output logic        stream_in_TREADY,  
+   output logic        stream_in_TREADY,
    //- Output Interface
    input  logic        stream_out_TREADY,
    output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
+   output logic [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
    output logic        stream_out_TLAST,
    //---Memory Interface---//
-   input  logic        local_mem, 
+   input  logic        local_mem,
    //- Memory port A (Memory Manager)
-   input  logic [31:0] mem_rdata_a,
+   input  logic [BW-1:0] mem_rdata_a,
    output logic [31:0] mem_addr_a,
-   output logic [31:0] mem_wdata_a, 
-   output logic        mem_wstrb_a, 
+   output logic [BW-1:0] mem_wdata_a,
+   output logic        mem_wstrb_a,
    output logic        mem_valid_a,
-   //- Spying on the Processor-memory Interface 
+   //- Spying on the Processor-memory Interface
    output logic [31:0] mem_rdata_rv,
    output logic        mem_ready_rv,
    input  logic [31:0] mem_addr_rv,
-   input  logic [31:0] mem_wdata_rv, 
-   input  logic        mem_wstrb_rv, 
+   input  logic [BW-1:0] mem_wdata_rv,
+   input  logic        mem_wstrb_rv,
    input  logic        mem_valid_rv //,
 );
 
@@ -94,45 +96,45 @@ localparam ADDR_W = 10;
 
 logic        fifo_0A_en,   fifo_0B_en;
 logic [31:0] fifo_0A_addr, fifo_0B_addr;
-logic [31:0] fifo_0A_dout, fifo_0B_dout;
+logic [BW-1:0] fifo_0A_dout, fifo_0B_dout;
 logic        fifo_0_empty;
 logic        fifo_0_full;
 
 logic        stream_in_TVALID_int;
-logic [31:0] stream_in_TDATA_int;
-logic [ 3:0] stream_in_TKEEP_int; 
+logic [BW-1:0] stream_in_TDATA_int;
+logic [BWB-1:0] stream_in_TKEEP_int;
 logic        stream_in_TLAST_int;
 logic        stream_in_TREADY_int;
 
 logic        stream_out_dec_TVALID;
-logic [31:0] stream_out_dec_TDATA;
-logic [ 3:0] stream_out_dec_TKEEP; 
+logic [BW-1:0] stream_out_dec_TDATA;
+logic [BWB-1:0] stream_out_dec_TKEEP;
 logic        stream_out_dec_TLAST;
 logic        stream_out_dec_TREADY;
 
 logic        stream_out_dec_TVALID_int;
-logic [31:0] stream_out_dec_TDATA_int;
-logic [ 3:0] stream_out_dec_TKEEP_int; 
+logic [BW-1:0] stream_out_dec_TDATA_int;
+logic [BWB-1:0] stream_out_dec_TKEEP_int;
 logic        stream_out_dec_TLAST_int;
-logic        stream_out_dec_TREADY_int; 
+logic        stream_out_dec_TREADY_int;
 
 logic        stream_out_pcpi_TVALID;
-logic [31:0] stream_out_pcpi_TDATA;
-logic [ 3:0] stream_out_pcpi_TKEEP; 
+logic [BW-1:0] stream_out_pcpi_TDATA;
+logic [BWB-1:0] stream_out_pcpi_TKEEP;
 logic        stream_out_pcpi_TLAST;
-logic        stream_out_pcpi_TREADY; 
+logic        stream_out_pcpi_TREADY;
 
 logic        stream_out_mem_TVALID;
-logic [31:0] stream_out_mem_TDATA;
-logic [ 3:0] stream_out_mem_TKEEP; 
+logic [BW-1:0] stream_out_mem_TDATA;
+logic [BWB-1:0] stream_out_mem_TKEEP;
 logic        stream_out_mem_TLAST;
-logic        stream_out_mem_TREADY; 
+logic        stream_out_mem_TREADY;
 
 logic        stream_out_spy_TVALID;
-logic [31:0] stream_out_spy_TDATA;
-logic [ 3:0] stream_out_spy_TKEEP; 
+logic [BW-1:0] stream_out_spy_TDATA;
+logic [BWB-1:0] stream_out_spy_TKEEP;
 logic        stream_out_spy_TLAST;
-logic        stream_out_spy_TREADY; 
+logic        stream_out_spy_TREADY;
 
 //***************************
 //* Que comience la fiesta
@@ -143,6 +145,8 @@ logic        stream_out_spy_TREADY;
 //  in a FIFO.  
 
 noc_buffer_in#(
+   .BW  (BW),
+   .BWB (BWB),
    .ADDR_W (NOC_BUFFER_ADDR_W)
 ) noc_buffer_in(
    .clk_in            (clk_line),
@@ -164,7 +168,11 @@ noc_buffer_in#(
 
 
 
-noc_decoder noc_decoder(
+noc_decoder#(
+   .BW  (BW),
+   .BWB (BWB),
+   .XY_SZ (XY_SZ)
+) noc_decoder(
    //- Clock and reset
    .clk_ctrl         (clk_ctrl),
    .clk_ctrl_rst_low (clk_ctrl_rst_low), 
@@ -204,6 +212,8 @@ noc_decoder noc_decoder(
 //////////////////////////////
 
 noc_buffer_out#(
+   .BW  (BW),
+   .BWB (BWB),
    .ADDR_W (NOC_BUFFER_ADDR_W-2)
 ) noc_buffer_out(
    .clk_in            (clk_ctrl),
@@ -225,7 +235,11 @@ noc_buffer_out#(
 
 qISAExtension_pcpi#(
    //.NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W-2)  //- FIXME: Why -2
-   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W)  
+   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W),
+   .BW  (BW),
+   .BWB (BWB),
+   .OFFSET_SZ (OFFSET_SZ),
+   .XY_SZ (XY_SZ)
 ) qISAExtension_pcpi(
    //- Clock and reset
    .clk_ctrl         (clk_ctrl),
@@ -268,7 +282,11 @@ qISAExtension_pcpi#(
 //assign mem_rdata_rv = stream_in_TDATA_int; //FIXME;
 
 mem_spy#(
-   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W-2)
+   .BW  (BW),
+   .BWB (BWB),
+   .NOC_BUFFER_ADDR_W (NOC_BUFFER_ADDR_W-2),
+   .XY_SZ (XY_SZ),
+   .OFFSET_SZ (OFFSET_SZ)
 ) mem_spy(
    //---Clock and Reset---//
    .clk_ctrl          (clk_ctrl),
@@ -299,7 +317,7 @@ mem_spy#(
 //- B: Processor reads
 DPRAM #(
   .ADDR_W     (MQ_ADDR_W),
-  .DATA_W     (32),
+  .DATA_W     (BW),
   .MEMSIZE_KB (MQ_MEMSIZE_KB)
 ) fifo_0_ram (
   .clk   ({clk_ctrl,         clk_ctrl}),
@@ -307,13 +325,16 @@ DPRAM #(
   .en    ({fifo_0A_en,       fifo_0B_en}),
   .we    ({fifo_0A_en,       1'b0}),
   .addr  ({fifo_0A_addr[MQ_ADDR_W-1:0], fifo_0B_addr[MQ_ADDR_W-1:0]}),
-  .din   ({stream_in_TDATA_int, 32'h0}),
+  .din   ({stream_in_TDATA_int, {(BW){1'b0}}}),
   .dout  ({fifo_0B_dout,     fifo_0A_dout})
 );
 assign fifo_0_empty = fifo_0A_addr >= fifo_0B_addr ? fifo_0A_addr - fifo_0B_addr == 0 : fifo_0A_addr + FIFO_WRITE_DEPTH - fifo_0B_addr <= 1;
 assign fifo_0_full  = fifo_0A_addr >  fifo_0B_addr ? fifo_0A_addr - fifo_0B_addr == FIFO_WRITE_DEPTH - 1 : fifo_0B_addr - fifo_0A_addr == 'h1; 
 
-noc_out_arbiter noc_out_arbiter (
+noc_out_arbiter#(
+   .BW  (BW),
+   .BWB (BWB)
+) noc_out_arbiter (
    .clk_line_rst_low      (clk_line_rst_low),
    .clk_line              (clk_line),
    .stream_in_pcpi_TREADY (stream_out_pcpi_TREADY),

@@ -31,37 +31,40 @@
 
 `timescale 1 ps/ 1 ps
 
-module noc_out_arbiter(
+module noc_out_arbiter#(
+   parameter BW  = 32,
+   parameter BWB = BW/8
+)(
    input  logic        clk_line,
    input  logic        clk_line_rst_low,
    output logic        stream_in_pcpi_TREADY,
    input  logic        stream_in_pcpi_TVALID,
-   input  logic [31:0] stream_in_pcpi_TDATA,
-   input  logic [ 3:0] stream_in_pcpi_TKEEP,
+   input  logic [BW-1:0] stream_in_pcpi_TDATA,
+   input  logic [BWB-1:0] stream_in_pcpi_TKEEP,
    input  logic        stream_in_pcpi_TLAST,
 
    output logic        stream_in_mem_TREADY,
    input  logic        stream_in_mem_TVALID,
-   input  logic [31:0] stream_in_mem_TDATA,
-   input  logic [ 3:0] stream_in_mem_TKEEP,
+   input  logic [BW-1:0] stream_in_mem_TDATA,
+   input  logic [BWB-1:0] stream_in_mem_TKEEP,
    input  logic        stream_in_mem_TLAST,
 
    output logic        stream_in_spy_TREADY,
    input  logic        stream_in_spy_TVALID,
-   input  logic [31:0] stream_in_spy_TDATA,
-   input  logic [ 3:0] stream_in_spy_TKEEP,
+   input  logic [BW-1:0] stream_in_spy_TDATA,
+   input  logic [BWB-1:0] stream_in_spy_TKEEP,
    input  logic        stream_in_spy_TLAST,
- 
+
    output logic        stream_in_noc_TREADY,
    input  logic        stream_in_noc_TVALID,
-   input  logic [31:0] stream_in_noc_TDATA,
-   input  logic [ 3:0] stream_in_noc_TKEEP,
+   input  logic [BW-1:0] stream_in_noc_TDATA,
+   input  logic [BWB-1:0] stream_in_noc_TKEEP,
    input  logic        stream_in_noc_TLAST,
 
    input  logic        stream_out_TREADY,
    output logic        stream_out_TVALID,
-   output logic [31:0] stream_out_TDATA,
-   output logic [ 3:0] stream_out_TKEEP,
+   output logic [BW-1:0] stream_out_TDATA,
+   output logic [BWB-1:0] stream_out_TKEEP,
    output logic        stream_out_TLAST
 );
 
@@ -242,7 +245,7 @@ always @( * ) begin
    endcase
 end
 
-assign stream_out_TKEEP = 4'b1111;
+assign stream_out_TKEEP = {BWB{1'b1}};
 
 endmodule
 
