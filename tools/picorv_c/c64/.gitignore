@@ -1,0 +1,7 @@
+*.o
+*.elf
+*.tmp
+*.disassembled
+*.readelf
+*.map
+*.bin

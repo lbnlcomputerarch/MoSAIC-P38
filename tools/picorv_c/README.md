@@ -2,6 +2,25 @@
 
 This directory contains files required to generate the firmware to be loaded in the PICORV scratchpad memories.
 
+# RV64 firmware (pico64 tiles)
+
+The `c64/` subdirectory builds RV64 firmware for the pico64 tiles (Phase 4 of
+the 64-bit upgrade, plan D22–D24). It uses a **single-ELF** flow (`start.S` +
+`riscv64.ld`, adapted from the picorv64 fork's `firmware/sections.lds`), not
+the two-ELF `start.elf`+`riscv.ld` split below. Toolchain:
+`riscv64-unknown-elf-` prefix, falling back to homebrew `riscv64-elf-`,
+with `-march=rv64imc_zicsr_zifencei_zicntr -mabi=lp64`.
+
+```
+cd c64
+make SRC_FNAME=<code>        # builds <code>32.hex AND <code>64.hex
+make install SRC_FNAME=<code>  # copies <code>64.hex to src/Tile.HDL/picorv64_tile/firmware/
+```
+
+`<code>32.hex` is the canonical artifact (FPGA loading for ALL tiles via
+`rvLoadFirmware`); `<code>64.hex` is repacked by `hex8tohex64.py` (one
+64-bit word per line) and is for pico64 **simulation only**.
+
 # Files
 
 - Modified from the [PICORV](https://github.com/YosysHQ/picorv32) repository. 
