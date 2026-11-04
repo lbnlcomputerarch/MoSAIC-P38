@@ -82,21 +82,37 @@ sub clean_temp{
    my %param = %{$_[0]};
    my $id    = $_[1];
 
-   #- Address range for this tile
-   my $addr = sprintf("%08x", ($id * $addr_range)/4);
-   #- Extract the header
+   #- Hex artifact width (plan D25): 32 = default/canonical (FPGA loading
+   #- for all tiles, pico32 sim; behavior byte-identical to the original
+   #- flow). 64 = pico64 sim artifacts ($readmemh into the 64-bit
+   #- DPRAM_BE; @ addresses are in 64-bit memory words). The Makefile is
+   #- responsible for producing <code>64.hex (c64/Makefile does).
+   my $w = exists $param{'hex_width'} ? $param{'hex_width'} : 32;
+
+   #- Window base in memory words: $addr_range is in bytes; hex @
+   #- addresses are in $w/8-byte words (/4 at 32, /8 at 64)
+   my $base = ($id * $addr_range)/($w/8);
+   #- Extract the header (top 5 hex digits = the tile's 16 KB window;
+   #- low 3 digits select the block inside it)
+   my $addr = sprintf("%08x", $base);
    my @addr_a = split('',$addr);
    $addr = join('',@addr_a[0..4]);
 
-   my $file = $param{'c_code'}."32.hex";
+   my $file = $param{'c_code'}."$w.hex";
    open(my $FH, '<', $file) or die "Couldn't open $file $!\n";
-   my $new_file = $param{'c_code'}."32_$id.hex";
+   my $new_file = $param{'c_code'}."${w}_$id.hex";
    open(my $FH1, '>', $new_file) or die "Couldn't open $new_file $!\n";
    my $valid_line = 0;
    while(<$FH>){
       my $line = $_;
-      if ($line =~ /\@$addr/){ #- Address
+      if ($line =~ /\@$addr/){ #- Address (top 5 hex digits = this tile's window)
          $valid_line = 1;
+         #- Re-base to window-relative: subtract the window base. This is
+         #- arithmetic, not prefix zeroing: at 64-bit the window base
+         #- (e.g. 0x800 word64) is not 0x1000-aligned, so the old prefix
+         #- trick breaks. Byte-identical to it at 32-bit (base is always
+         #- a multiple of 0x1000 there).
+         $line =~ s/\@([0-9a-fA-F]+)/sprintf("\@%08x", hex($1) - $base)/e;
          print $FH1 $line;
       }elsif ($line =~ /\@/){
          $valid_line = 0;
@@ -106,7 +122,6 @@ sub clean_temp{
    }
    close($FH);
    close($FH1);
-   `sed -i s\/\@$addr\/\@00000\/ $param{'c_code'}32_$id.hex`;
    if ($param{'keep'}){
       `mv $file $temp_dir/$new_file`;
    }
