@@ -63,11 +63,11 @@ module noc_decoder #(
    output logic          fifo_0A_en,   //- Message queues
    output logic   [31:0] fifo_0A_addr,
    output logic   [31:0] mem_addr_a,   //- Scratchpad memory
-   output logic [BW-1:0] mem_wdata_a, 
+   output logic [BW-1:0] mem_wdata_a,
    output logic          mem_wstrb_a,
    output logic          mem_valid_a,
    input  logic [BW-1:0] mem_rdata_a,
-   output logic   [31:0] mem_rdata_rv
+   output logic [BW-1:0] mem_rdata_rv
 );
 
 /***************************
@@ -144,7 +144,7 @@ assign noc_inst_ack   = noc_code == MACK;
 assign noc_inst_queue = noc_code == QM; 
 assign noc_inst_data  = noc_code == MDATA;
 
-logic [31:0] next_mem_rdata_rv;
+logic [BW-1:0] next_mem_rdata_rv;
 
 always @(posedge clk_ctrl or negedge clk_ctrl_rst_low) begin
    if (~clk_ctrl_rst_low) begin
@@ -232,7 +232,7 @@ always @( * ) begin
       HEADER2: begin //9
          if (stream_in_TVALID) begin
             //next_mem_addr_a = stream_in_TDATA[OFFSET_SZ-1:0]; //Nov 30 2023
-            next_mem_addr_a = stream_in_TDATA;
+            next_mem_addr_a = stream_in_TDATA[31:0];
             if (noc_code_reg == MPUT || noc_code_reg == MSTORE)
                nextState1 = MEM_WR;  
             else if (noc_code_reg == MGET || noc_code_reg == MLOAD)
@@ -255,11 +255,12 @@ always @( * ) begin
         end
       end
       MEM_WR: begin  //-2 MPUT (Write memory)
-         if (stream_in_TVALID) begin              
+         if (stream_in_TVALID) begin
             next_noc_data_in = stream_in_TDATA;
             mem_valid_a = 1'b1;
             mem_wstrb_a = 1'b1;
-            next_mem_addr_a = mem_addr_a + 'h1;
+            //- One data beat = BW/32 32-bit-words (1 at BW=32, 2 at BW=64)
+            next_mem_addr_a = mem_addr_a + (BW/32);
             if (stream_in_TLAST) begin
                if (noc_code_reg == MSTORE) nextState1 = MEM_WR_ACK;
                else                        nextState1 = IDLE;
@@ -314,7 +315,7 @@ always @( * ) begin
          if (stream_out_TREADY) begin
             nextState1 = WAIT_SEND;
             mem_valid_a = 1'b1;
-            next_mem_addr_a = mem_addr_a + 'h1; //- August 17 2023
+            next_mem_addr_a = mem_addr_a + (BW/32); //- August 17 2023
          end else stream_in_TREADY = 1'b0;
       end      
       WAIT: begin //4
@@ -339,7 +340,7 @@ always @( * ) begin
                    nextState1 = IDLE;
             end else begin
                 mem_valid_a = 1'b1;
-                next_mem_addr_a = mem_addr_a + 'h1;
+                next_mem_addr_a = mem_addr_a + (BW/32);
                 stream_out_TLAST  = 1'b0;
                 next_ctr = ctr -1;
             end

@@ -112,7 +112,7 @@ logic [31:0] mem_rdata_data_b;
 
 logic [(2*XY_SZ-1):0] mem_addr_xy;
 
-logic [31:0] mem_rdata_outsi_rv;
+logic [BW-1:0] mem_rdata_outsi_rv;
 logic mem_ready_outsi_rv;
 
 
@@ -171,7 +171,7 @@ assign boot = mem_addr_rv < 'h200;
 assign mem_ready_rv = mem_ready_rv_data | mem_ready_rv_instr | mem_ready_outsi_rv;
 
 assign mem_rdata_rv = local_mem    ? mem_rdata_data_b : 
-                      mem_instr_rv ? mem_rdata_instr  : mem_rdata_outsi_rv; 
+                      mem_instr_rv ? mem_rdata_instr  : mem_rdata_outsi_rv[31:0]; 
                       
 
 assign mem_rdata_a = mem_instr_rv ? mem_rdata_instr : mem_rdata_data_b;
@@ -333,7 +333,7 @@ assign mem_valid_data_a = mem_valid_a;
 assign mem_wstrb_data_a = mem_wstrb_a & mem_valid_a;
 
 assign mem_ready_rv = mem_ready_local_rv | mem_ready_outsi_rv;
-assign mem_rdata_rv = local_mem_spy ? mem_rdata_data_b : mem_rdata_outsi_rv;
+assign mem_rdata_rv = local_mem_spy ? mem_rdata_data_b : mem_rdata_outsi_rv[31:0];
 
 assign mem_valid_b = (mem_valid_rv & local_mem_spy) | mem_valid_axi; 
 assign mem_addr_b  = mem_valid_axi ? mem_addr_axi  : {20'h0,mem_addr_b_32[OFFSET_SZ-1:0]};

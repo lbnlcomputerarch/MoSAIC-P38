@@ -78,7 +78,7 @@ module qISAExtension#(
    output logic        mem_wstrb_a,
    output logic        mem_valid_a,
    //- Spying on the Processor-memory Interface
-   output logic [31:0] mem_rdata_rv,
+   output logic [BW-1:0] mem_rdata_rv,
    output logic        mem_ready_rv,
    input  logic [31:0] mem_addr_rv,
    input  logic [BW-1:0] mem_wdata_rv,
