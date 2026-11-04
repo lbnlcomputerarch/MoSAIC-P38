@@ -21,6 +21,13 @@ make install SRC_FNAME=<code>  # copies <code>64.hex to src/Tile.HDL/picorv64_ti
 `rvLoadFirmware`); `<code>64.hex` is repacked by `hex8tohex64.py` (one
 64-bit word per line) and is for pico64 **simulation only**.
 
+Message-queue firmware includes `mq64.h` (which includes `xcustom64.h`)
+instead of the 32-bit `mq.h`/`xcustom.h` — same `.insn r CUSTOM_1`
+encodings (plan D26), plus the long-packet macros (`qPut_h`/`qPut_d`,
+`mPut_h`/`mPut_d`, `mGet_h`/`mGet_d`). The long-packet beat convention
+(4-bit code in rs2[3:0], beat = 8 bytes at BW=64, `code = log2(n_beats)+1`)
+is documented in `mq64.h`.
+
 # Files
 
 - Modified from the [PICORV](https://github.com/YosysHQ/picorv32) repository. 
