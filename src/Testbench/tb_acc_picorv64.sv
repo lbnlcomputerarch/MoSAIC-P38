@@ -37,7 +37,9 @@
 //     ../Tile.HDL/mq_common/mem_spy.sv \
 //     ../Tile.HDL/mq_common/noc_out_arbiter.sv \
 //     ../Tile.HDL/noc_buffer_in.sv ../Tile.HDL/noc_buffer_out.sv \
-//     ../Tile.HDL/noc_decoder.sv ../Common.HDL/DPRAM.sv ../Common.HDL/DPRAM_BE.sv \
+//     ../Tile.HDL/noc_decoder.sv ../Tile.HDL/tile_noc.sv ../Tile.HDL/4x1_local.sv \
+//     ../Tile.HDL/axi_control.sv ../Tile.HDL/RV_AXIInD.v ../Tile.HDL/TileRegBlock.v \
+//     ../Common.HDL/DPRAM.sv ../Common.HDL/DPRAM_BE.sv \
 //     ../Common.HDL/Register.v ../../models/xpm_fifo_async.sv \
 //     ../../models/xpm_fifo_sync.sv ../../models/xpm_cdc_array_single.v \
 //     && vvp /tmp/tb_acc_picorv64.vvp
