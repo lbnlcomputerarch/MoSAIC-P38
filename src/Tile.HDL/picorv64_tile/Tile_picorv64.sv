@@ -23,7 +23,7 @@
 
 ////////////////////////////////////////////////
 // Author      : Farzad Fatollahi-Fard
-// Email       : lg4er@lbl.gov
+// Email       : ffard@lbl.gov
 // Date        : November 3 2026
 // Description : PICORV64 Tile (pico64) 
 // File        : Tile_picorv64.sv
