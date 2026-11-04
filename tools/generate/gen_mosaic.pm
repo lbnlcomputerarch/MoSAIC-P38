@@ -299,7 +299,7 @@ sub gen_file_list{
    }
 
    if ($param{'instruction_mem'}){
-      print $FH "../src/Tile.HDL/picorv32_tile/instr_mem.sv\n";
+      print $FH "../src/Tile.HDL/mq_common/instr_mem.sv\n";
    }
 
    if ($param{'ddr4_flag'}){

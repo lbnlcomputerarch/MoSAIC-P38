@@ -23,10 +23,10 @@
 // Run (from src/Testbench):
 //   iverilog -g2012 -o /tmp/tb_qisa_bw64.vvp \
 //     tb_qisa_bw64.sv \
-//     ../Tile.HDL/picorv32_tile/qISAExtension.sv \
-//     ../Tile.HDL/picorv32_tile/qISAExtension_pcpi.sv \
-//     ../Tile.HDL/picorv32_tile/mem_spy.sv \
-//     ../Tile.HDL/picorv32_tile/noc_out_arbiter.sv \
+//     ../Tile.HDL/mq_common/qISAExtension.sv \
+//     ../Tile.HDL/mq_common/qISAExtension_pcpi.sv \
+//     ../Tile.HDL/mq_common/mem_spy.sv \
+//     ../Tile.HDL/mq_common/noc_out_arbiter.sv \
 //     ../Tile.HDL/noc_buffer_in.sv ../Tile.HDL/noc_buffer_out.sv \
 //     ../Tile.HDL/noc_decoder.sv ../Common.HDL/DPRAM.sv \
 //     ../../models/xpm_fifo_async.sv ../../models/xpm_fifo_sync.sv \
