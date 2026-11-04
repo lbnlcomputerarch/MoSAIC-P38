@@ -14,7 +14,7 @@
 // *************************************************************************
 
 /* ////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : pico64 (tile 11) MQ receiver: qGet a 64-bit message
 //               from tile 00 and store a transformed copy locally

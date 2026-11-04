@@ -14,7 +14,7 @@
 // *************************************************************************
 
 /////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : Message-queue macros for RV64 pico64 tiles
 // File        : mq64.h

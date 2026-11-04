@@ -3,7 +3,7 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 /* ////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : Linker script for PICORV64 (pico64 tile) in MoSAIC
 // File        : riscv64.ld

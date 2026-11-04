@@ -14,7 +14,7 @@
 // *************************************************************************
 
 /* ////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : pico64 (tile 00) MQ sender: qPut to pico64 tile 11,
 //               mPut/mGet round trip with the scratchpad tile 8

@@ -22,7 +22,7 @@
 // *************************************************************************
 
 ////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Patricia Gonzalez-Guerrero, Farzad Fatollahi-Fard
 // Email       : lg4er@lbl.gov
 // Date        : April 27 2023
 // Description : axi interface in the tile 

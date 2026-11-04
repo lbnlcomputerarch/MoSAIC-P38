@@ -15,7 +15,7 @@
 # *************************************************************************
 
 # ////////////////////////////////////////////////////////////////
-# Author      : Patricia Gonzalez-Guerrero
+# Author      : Farzad Fatollahi-Fard
 # Date        : November 3 2026
 # Description : Repack objcopy -O verilog bytes into 64-bit words
 # File        : hex8tohex64.py

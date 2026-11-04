@@ -14,7 +14,7 @@
 // *************************************************************************
 
 // ////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : C bring-up firmware for pico64 tiles (Phase 4)
 // File        : hello.c

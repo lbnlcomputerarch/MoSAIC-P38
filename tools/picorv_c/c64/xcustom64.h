@@ -14,7 +14,7 @@
 // *************************************************************************
 
 /////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Date        : November 3 2026
 // Description : PCPI custom-instruction encodings for RV64 (pico64)
 // File        : xcustom64.h

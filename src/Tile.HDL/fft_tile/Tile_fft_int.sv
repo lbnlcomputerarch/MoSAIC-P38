@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////
-// Author      : Mario
+// Author      : Mario, Farzad Fatollahi-Fard
 // Date        : 2024
 // Description : FFT files
 // File        : Tile_fft_int.sv

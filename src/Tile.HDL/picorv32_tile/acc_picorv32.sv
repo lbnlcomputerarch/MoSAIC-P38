@@ -22,7 +22,7 @@
 // *************************************************************************
 
 ////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Patricia Gonzalez-Guerrero, Farzad Fatollahi-Fard
 // Date        : Sept 29 2022
 // Description : Accelerator with PICORV32
 // File        : acc_picorv32.sv

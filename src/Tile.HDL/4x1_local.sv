@@ -22,7 +22,7 @@
 // *************************************************************************
 
 ////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Patricia Gonzalez-Guerrero, Farzad Fatollahi-Fard
 // Date        : Oct 23 2023
 // Description : Modules to build light weigth NoC.  
 // File        : 4x1_local.sv

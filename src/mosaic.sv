@@ -22,7 +22,7 @@
 // *************************************************************************
 
 /////////////////////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Patricia Gonzalez-Guerrero, Farzad Fatollahi-Fard
 // Date        : April 19 2022
 // Description : PICORV32 Tile 
 // File        : Tile_picorv32.sv

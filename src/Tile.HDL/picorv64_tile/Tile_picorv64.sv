@@ -22,7 +22,7 @@
 // *************************************************************************
 
 ////////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Farzad Fatollahi-Fard
 // Email       : lg4er@lbl.gov
 // Date        : November 3 2026
 // Description : PICORV64 Tile (pico64) 

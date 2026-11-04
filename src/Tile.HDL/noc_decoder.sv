@@ -22,7 +22,7 @@
 // *************************************************************************
 
 ///////////////////////////////////////////////
-// Author      : Patricia Gonzalez-Guerrero
+// Author      : Patricia Gonzalez-Guerrero, Farzad Fatollahi-Fard
 // Date        : Sept 29 2022
 // Description : Decode the NoC header 
 // File        : noc_decoder.sv

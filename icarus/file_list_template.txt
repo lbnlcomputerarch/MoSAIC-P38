@@ -21,7 +21,7 @@
 #
 # *************************************************************************
 ##############################################
-# Author      : LPGG 
+# Author      : LPGG, Farzad Fatollahi-Fard
 # Date        : 12-17-2020
 # Description : List of files for verilog  
 #               simulation
