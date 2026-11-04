@@ -176,8 +176,19 @@ logic [BWB-1:0] stream_out_mem_TKEEP_int;
 logic stream_out_mem_TREADY_int;
 
 logic [OFFSET_SZ-1:0] pcpi_offset_short; //- Header fields
+//- Destination extraction (was conditionally assigned inside the IDLE_S
+//  state of the FSM below, which inferred a latch; the header only ever
+//  consumes the dest in that same cycle, so a combinational mux on the
+//  mutually-exclusive instruction selectors is equivalent and latch-free).
+//  qPut packs dest in rs1[2*XY_SZ-1:0]; mPut/mGet pack it above the offset.
 logic      [XY_SZ-1:0] pcpi_x_dest;
 logic      [XY_SZ-1:0] pcpi_y_dest;
+assign pcpi_x_dest = (inst_q_put | inst_q_put_h | inst_q_put_d)
+                     ? pcpi_rs1[XY_SZ-1:0]
+                     : pcpi_rs1[OFFSET_SZ+XY_SZ-1:OFFSET_SZ];
+assign pcpi_y_dest = (inst_q_put | inst_q_put_h | inst_q_put_d)
+                     ? pcpi_rs1[(2*XY_SZ)-1:XY_SZ]
+                     : pcpi_rs1[OFFSET_SZ+(2*XY_SZ)-1:OFFSET_SZ+XY_SZ];
 logic pcpi_hl;
 logic pcpi_hl_short;
 
@@ -289,8 +300,6 @@ always @( * ) begin
                  fifo_2B_en  = 1'b1;
                  pcpi_ready  = 1'b1;
                  nextState2 = QPUT_DATA_S;
-                 pcpi_x_dest = pcpi_rs1[XY_SZ-1:0];
-                 pcpi_y_dest = pcpi_rs1[(2*XY_SZ)-1:XY_SZ]; // LPGG May 26 2023
                  if (inst_q_put) //- Short packet
                     fifo_2B_din = pcpi_header;
                  else if (inst_q_put_h) begin //- Long header
@@ -303,8 +312,6 @@ always @( * ) begin
            end else if (inst_m_put | inst_m_put_h | inst_m_get | inst_m_get_h | inst_m_put_d | inst_m_get_d) begin
               if (stream_out_mem_TREADY_int) begin
                  nextState2 = SEND2_S;
-                 pcpi_x_dest = pcpi_rs1[OFFSET_SZ+XY_SZ-1:OFFSET_SZ];
-                 pcpi_y_dest = pcpi_rs1[OFFSET_SZ+(2*XY_SZ)-1:OFFSET_SZ+XY_SZ];
                  stream_out_mem_TVALID_int = 1'b1;
                  if (inst_m_put | inst_m_get) //- Short packer
                       stream_out_mem_TDATA_int = pcpi_header;
