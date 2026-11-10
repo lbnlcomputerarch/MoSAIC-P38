@@ -31,12 +31,29 @@
 #   sim loader reads (gen_mosaic.pm pico64 branch).
 # ////////////////////////////////////////////////////////////////
 
-RISCV_TOOLS_PREFIX ?= $(shell command -v riscv64-unknown-elf-gcc >/dev/null 2>&1 \
-                        && echo riscv64-unknown-elf- || echo riscv64-elf-)
+#- Toolchain selection (plan D23, amended): prefer the riscv64 gcc
+#- prefixes, falling back to clang+lld (clang's riscv64 target compiles
+#- the same sources, including the .insn custom instructions) when no
+#- riscv gcc is installed.
+ifneq ($(shell command -v riscv64-unknown-elf-gcc 2>/dev/null),)
+RISCV_TOOLS_PREFIX = riscv64-unknown-elf-
+else ifneq ($(shell command -v riscv64-elf-gcc 2>/dev/null),)
+RISCV_TOOLS_PREFIX = riscv64-elf-
+else
+CLANG_FLAGS = --target=riscv64-unknown-elf -fuse-ld=lld
+endif
+
+ifdef CLANG_FLAGS
+CC = clang $(CLANG_FLAGS)
+OD = llvm-objdump
+RE = llvm-readelf
+OC = llvm-objcopy
+else
 CC = $(RISCV_TOOLS_PREFIX)gcc
 OD = $(RISCV_TOOLS_PREFIX)objdump
 RE = $(RISCV_TOOLS_PREFIX)readelf
 OC = $(RISCV_TOOLS_PREFIX)objcopy
+endif
 
 #- Plan D23
 ARCH_FLAGS = -march=rv64imc_zicsr_zifencei_zicntr -mabi=lp64
@@ -62,15 +79,23 @@ $(SRC_FNAME).elf: start.o $(SRC_FNAME).o
 %.o: %.S
 	$(CC) $(ARCH_FLAGS) -c -o $@ $<
 
+#- Byte stream from the ELF: objcopy -O verilog with a riscv gcc
+#- toolchain; elftoverilog.py with clang/lld (this LLVM's objcopy has
+#- no verilog output target).
+$(SRC_FNAME).tmp: $(SRC_FNAME).elf
+ifdef CLANG_FLAGS
+	python3 elftoverilog.py $(SRC_FNAME).elf > $(SRC_FNAME).tmp
+else
+	$(OC) -O verilog $(SRC_FNAME).elf $(SRC_FNAME).tmp
+endif
+
 #- Canonical 32-bit artifact: objcopy verilog -> repack to 32-bit words
 #- (hex8tohex32.py unchanged from the picorv32 flow, plan D24)
-$(SRC_FNAME)32.hex: $(SRC_FNAME).elf
-	$(OC) -O verilog $(SRC_FNAME).elf $(SRC_FNAME).tmp
+$(SRC_FNAME)32.hex: $(SRC_FNAME).tmp
 	python3 ../c/hex8tohex32.py $(SRC_FNAME).tmp > $@
 
 #- pico64 sim artifact: same byte stream repacked to 64-bit words
-$(SRC_FNAME)64.hex: $(SRC_FNAME).elf
-	$(OC) -O verilog $(SRC_FNAME).elf $(SRC_FNAME).tmp
+$(SRC_FNAME)64.hex: $(SRC_FNAME).tmp
 	python3 hex8tohex64.py $(SRC_FNAME).tmp > $@
 
 install: $(SRC_FNAME)64.hex
