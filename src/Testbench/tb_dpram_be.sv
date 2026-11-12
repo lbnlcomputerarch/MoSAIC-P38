@@ -24,6 +24,8 @@
 //   4. The full 16 KB window is addressable: the last word
 //      (index MEMSIZE_KB*1024/BWB - 1 = 2047) must be usable
 //      (D15b; review finding F1).
+//   5. Enabled writes are read-first: dout captures the complete old
+//      word, not din or the newly merged word. Disabled ports hold dout.
 //
 // Port-vector convention matches DPRAM.sv: {portB, portA} on
 // en/wstrb/addr/din; dout = {douta, doutb}.
@@ -119,45 +121,48 @@ module tb_dpram_be;
       rst_n = 1;
 
       //- 1. Byte-lane merge on port B, two writes to addr 2
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b10;                  //- port B
       wstrb = {8'h0F, 8'h00};         //- port B, low lanes only
       addr  = {ADDR_W'(2), ADDR_W'(0)};
       din   = {64'hDEADBEEFCAFEBABE, 64'h0};
-      @(posedge clk);
+      @(negedge clk);
       wstrb = {8'hF0, 8'h00};         //- port B, high lanes only
       din   = {64'h1122334455667788, 64'h0};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b01;                  //- read back on port A
       addr  = {ADDR_W'(0), ADDR_W'(2)};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b00;
+      #1;                             //- sample after the read-data NBA update
       check(dout_a, 64'h11223344CAFEBABE, "lane merge (low+high)");
 
       //- 2. Port A full-word write, read on port B (cross-port visibility)
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b01;                  //- port A
       wstrb = {8'h00, 8'hFF};         //- port A, full word
       addr  = {ADDR_W'(0), ADDR_W'(3)};
       din   = {64'h0, 64'hA5A5A5A55A5A5A5A};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b10;                  //- read on port B
       addr  = {ADDR_W'(3), ADDR_W'(0)};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b00;
+      #1;                             //- sample after the read-data NBA update
       check(dout_b, 64'hA5A5A5A55A5A5A5A, "port A full-word write");
 
       //- 3. Single-lane rewrite preserves the other lanes
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b10;
       wstrb = {8'h01, 8'h00};         //- lane 0 only
       addr  = {ADDR_W'(3), ADDR_W'(0)};
       din   = {64'hFFFF_FFFF_FFFF_FFFF, 64'h0};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b01;                  //- read on port A
       addr  = {ADDR_W'(0), ADDR_W'(3)};
-      @(posedge clk);
+      @(negedge clk);
       en    = 2'b00;
+      #1;                             //- sample after the read-data NBA update
       check(dout_a, 64'hA5A5A5A55A5A5AFF, "single-lane rewrite");
 
       //- 4. Last word of the full 16 KB window is usable (F1)
@@ -168,7 +173,7 @@ module tb_dpram_be;
       wstrb_f = {8'hFF, 8'h00};
       addr_f  = {FULL_ADDR_W'(FULL_LAST), FULL_ADDR_W'(0)};
       din_f   = {64'hDEADBEEF0BADF00D, 64'h0};
-      @(posedge clk);
+      @(negedge clk);
       en_f    = 2'b01;                //- read back on port A
       wstrb_f = '0;
       addr_f  = {FULL_ADDR_W'(0), FULL_ADDR_W'(FULL_LAST)};
@@ -176,6 +181,48 @@ module tb_dpram_be;
       #1;                             //- let the read NBA land (no write-through masking)
       en_f    = 2'b00;
       check(dout_f_a, 64'hDEADBEEF0BADF00D, "last word (2047) usable");
+
+      //- 5. Read-first partial write on port B. The write-cycle output is
+      //- the complete old word; din's upper lanes must not leak into dout.
+      //- Drive away from the active edge so the write occurs exactly once.
+      @(negedge clk);
+      dut.mem[5] = 64'h1122334455667788;
+      en    = 2'b10;
+      wstrb = {8'h0F, 8'h00};
+      addr  = {ADDR_W'(5), ADDR_W'(0)};
+      din   = {64'hAABBCCDDEEFF0011, 64'h0};
+      @(posedge clk);
+      #1;
+      check(dout_b, 64'h1122334455667788, "RF old word B");
+
+      //- 6. A disabled port holds the preceding read-first output.
+      en    = 2'b00;
+      wstrb = '0;
+      addr  = '0;
+      din   = '0;
+      @(posedge clk);
+      #1;
+      check(dout_b, 64'h1122334455667788, "EN output hold");
+
+      en    = 2'b01;
+      addr  = {ADDR_W'(0), ADDR_W'(5)};
+      @(posedge clk);
+      #1;
+      en    = 2'b00;
+      check(dout_a, 64'h11223344EEFF0011, "RF merged read");
+
+      //- 7. Port A also returns the old word during a write.
+      @(negedge clk);
+      dut.mem[6] = 64'h0123456789ABCDEF;
+      en    = 2'b01;
+      wstrb = {8'h00, 8'hFF};
+      addr  = {ADDR_W'(0), ADDR_W'(6)};
+      din   = {64'h0, 64'hFEEDFACECAFED00D};
+      @(posedge clk);
+      #1;
+      en    = 2'b00;
+      wstrb = '0;
+      check(dout_a, 64'h0123456789ABCDEF, "RF old word A");
 
       $display("=== tb_dpram_be: %0d error(s) ===", errors);
       if (errors == 0) $display("TB_RESULT: PASS");

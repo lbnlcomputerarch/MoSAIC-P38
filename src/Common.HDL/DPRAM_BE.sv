@@ -28,11 +28,13 @@
 // Notes       :
 //  - Byte-enable variant of DPRAM.sv (Phase 3 of the 64-bit upgrade, plan D16).
 //    Used only by acc_picorv64 (RV64 sub-word stores need per-byte writes).
-//  - This memory model is valid for simulation only.
-//  - For FPGA synthesis, this should be replaced by a macro with byte enables,
-//    for example with AMDXilinx:
-//    https://docs.amd.com/r/en-US/ug974-vivado-ultrascale-libraries/XPM_MEMORY_SDPRAM
-//    (xpm_memory_sdpram supports per-byte write masks via its we ports).
+//  - Vendor-neutral inferred RAM for FPGA synthesis; no vendor primitive or IP.
+//  - Read-first synchronous behavior: on an enabled write, dout captures the
+//    complete old word at the addressed location, not din or the newly merged
+//    word. Merge results are visible on subsequent reads. On a partial write,
+//    only strobed bytes change; disabled lanes retain their previous value.
+//  - For bitstream initialization, verify the target flow supports this array;
+//    simulation preloads use the same preserved mem hierarchy.
 //  - For ASIC synthesis replace this with an SRAM Macro and set `ASIC_SYNTH.
 //  - Unlike DPRAM.sv, MEMSIZE_KB sizes the memory in KB of DATA (entries =
 //    MEMSIZE_KB*1024/(DATA_W/8)), not in 32-bit words.
@@ -93,26 +95,18 @@ assign dout   = {douta, doutb};
 
 always @(posedge clka) begin
   if (ena) begin
-    if (|wstrb_a) begin
-      douta <= dina;
-      for (integer b = 0; b < BWB; b = b + 1) begin
-        if (wstrb_a[b]) mem[addra][8*b +: 8] <= dina[8*b +: 8];
-      end
-    end else begin
-      douta <= mem[addra];
+    douta <= mem[addra];
+    for (integer b = 0; b < BWB; b = b + 1) begin
+      if (wstrb_a[b]) mem[addra][8*b +: 8] <= dina[8*b +: 8];
     end
   end
 end
 
 always @(posedge clkb) begin
   if (enb) begin
-    if (|wstrb_b) begin
-      doutb <= dinb;
-      for (integer b = 0; b < BWB; b = b + 1) begin
-        if (wstrb_b[b]) mem[addrb][8*b +: 8] <= dinb[8*b +: 8];
-      end
-    end else begin
-      doutb <= mem[addrb];
+    doutb <= mem[addrb];
+    for (integer b = 0; b < BWB; b = b + 1) begin
+      if (wstrb_b[b]) mem[addrb][8*b +: 8] <= dinb[8*b +: 8];
     end
   end
 end
