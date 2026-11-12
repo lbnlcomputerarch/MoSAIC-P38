@@ -741,7 +741,8 @@ sub gen_checker{ #- FIXME: how to generalize?
          }elsif (${item} eq 'pico64'){
             print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].pico64.tile_inst.acc_picorv64.dp_ram_be.mem);\n";
          }elsif (${item} eq 'spad'){
-           print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].spad.tile_inst.acc_scratchpad.dp_ram.mem);\n";
+           my $spad_ram = ($param{'noc_bw'} == 64) ? 'gen_wide_ram.dp_ram_be' : 'gen_legacy_ram.dp_ram';
+           print $FH "\t\$writememh(\"$param{'launch_path'}/tile_$i${j}.dat\", mosaic.row[$i].col[$j].spad.tile_inst.acc_scratchpad.$spad_ram.mem);\n";
          }else{
            print "DEBUG: Not printing the content of tile $i$j of type $item for final checkers.\n";
          }
@@ -904,7 +905,8 @@ sub gen_pico_testcase{
                      print $FH "\t\$display(\"Writing tile $i,$j\");\n";
                      print $FH "\tinitialize_mem_tile_AXI(\"$full_path2\",$adr);\n\n"; #FIXME: adr
                   }else{
-                     print $FH "\t\$readmemh(\"$full_path2\", mosaic.row[$i].col[$j].${type}.tile_inst.acc_scratchpad.dp_ram.mem);\n\n";
+                     my $spad_ram = ($param{'noc_bw'} == 64) ? 'gen_wide_ram.dp_ram_be' : 'gen_legacy_ram.dp_ram';
+                     print $FH "\t\$readmemh(\"$full_path2\", mosaic.row[$i].col[$j].${type}.tile_inst.acc_scratchpad.$spad_ram.mem);\n\n";
                   }
                }else{
                   die "ERROR: $full_path2 file does not exist\n";

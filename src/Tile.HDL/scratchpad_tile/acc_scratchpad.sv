@@ -155,24 +155,73 @@ noc_decoder#(
 // Scratchpad Memory
 //////////////////////////////
 
-logic [31:0] mm_mem_addr_short;
-assign mm_mem_addr_short = {20'h0,mm_mem_addr[OFFSET_SZ-1:0]};
-logic [BW-32-1:0] filler;
-assign filler = 'h0;
-logic [BW-1:0] mem_rdata_axi_t;
-assign mem_rdata_axi = mem_rdata_axi_t[31:0];
-DPRAM #(
-  .ADDR_W     (32),
-  .DATA_W     (BW),
-  .MEMSIZE_KB (16)
-) dp_ram (
-  .clk   ({clk_ctrl,         clk_ctrl}),
-  .rst_n ({clk_ctrl_rst_low, clk_ctrl_rst_low}),
-  .en    ({mem_valid_axi, mm_mem_valid }),
-  .we    ({mem_wstrb_axi, mm_mem_wstrb}),
-  .addr  ({mem_addr_axi,  mm_mem_addr_short}),  
-  .din   ({{filler,mem_wdata_axi}, mm_mem_wdata}),
-  .dout  ({mm_mem_rdata, mem_rdata_axi_t}));   //- LPGG FIXME: Does the order depend on the simulator?
+   logic [31:0] mm_mem_addr_short;
+   logic [BW-32-1:0] filler;
+   assign filler = 'h0;
+   logic [BW-1:0] mem_rdata_axi_t;
+
+   //- Legacy BW=32 behavior is deliberately unchanged, including DPRAM's
+   //- continuous reads and raw word32 addresses. The byte-strobed,
+   //- read-first DPRAM_BE is introduced only at BW=64: both ports use
+   //- word64 = word32_offset >> 1, while the 32-bit AXI control plane
+   //- selects one 32-bit half with byte enables (review F2).
+   generate
+      if (BW == 32) begin : gen_legacy_ram
+         assign mm_mem_addr_short = {20'h0,mm_mem_addr[OFFSET_SZ-1:0]};
+         assign mem_rdata_axi = mem_rdata_axi_t[31:0];
+         DPRAM #(
+           .ADDR_W     (32),
+           .DATA_W     (BW),
+           .MEMSIZE_KB (16)
+         ) dp_ram (
+           .clk   ({clk_ctrl,         clk_ctrl}),
+           .rst_n ({clk_ctrl_rst_low, clk_ctrl_rst_low}),
+           .en    ({mem_valid_axi, mm_mem_valid }),
+           .we    ({mem_wstrb_axi, mm_mem_wstrb}),
+           .addr  ({mem_addr_axi,  mm_mem_addr_short}),
+           .din   ({{filler,mem_wdata_axi}, mm_mem_wdata}),
+           .dout  ({mm_mem_rdata, mem_rdata_axi_t}));
+      end else if (BW == 64) begin : gen_wide_ram
+         localparam MEM_ADDR_W = OFFSET_SZ-1;
+         logic [MEM_ADDR_W-1:0] noc_addr_word;
+         logic [MEM_ADDR_W-1:0] axi_addr_word;
+         logic [7:0] noc_wstrb_word;
+         logic [7:0] axi_wstrb_word;
+         logic [BW-1:0] axi_wdata_word;
+
+         //- Port A (index 0): NoC. Full 64-bit beat at word32 >> 1.
+         assign noc_addr_word  = mm_mem_addr[OFFSET_SZ-1:1];
+         assign noc_wstrb_word = {8{mm_mem_wstrb}};
+
+         //- Port B (index 1): 32-bit AXI control plane. Address bit 0
+         //- selects the upper/lower half, without disturbing the other.
+         assign axi_addr_word  = mem_addr_axi[OFFSET_SZ-1:1];
+         assign axi_wdata_word = mem_addr_axi[0] ? {mem_wdata_axi, 32'h0}
+                                                : {32'h0, mem_wdata_axi};
+         assign axi_wstrb_word = mem_wstrb_axi ?
+                                 (mem_addr_axi[0] ? 8'hF0 : 8'h0F) : 8'h00;
+         assign mem_rdata_axi  = mem_addr_axi[0] ? mem_rdata_axi_t[63:32]
+                                                : mem_rdata_axi_t[31:0];
+
+         DPRAM_BE #(
+           .ADDR_W     (MEM_ADDR_W),
+           .DATA_W     (BW),
+           .MEMSIZE_KB (16)
+         ) dp_ram_be (
+           .clk   ({clk_ctrl,         clk_ctrl}),
+           .rst_n ({clk_ctrl_rst_low, clk_ctrl_rst_low}),
+           .en    ({mem_valid_axi,    mm_mem_valid}),
+           .wstrb ({axi_wstrb_word,   noc_wstrb_word}),
+           .addr  ({axi_addr_word,    noc_addr_word}),
+           .din   ({axi_wdata_word,   mm_mem_wdata}),
+           .dout  ({mm_mem_rdata,     mem_rdata_axi_t}));
+      end else begin : gen_unsupported_bw
+         initial begin
+            $error("acc_scratchpad: only BW=32 or BW=64 is supported");
+            $finish;
+         end
+      end
+   endgenerate
 
 //////////////////////////////
 // Buffer NoC data
