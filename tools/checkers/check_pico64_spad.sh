@@ -30,12 +30,9 @@
 #-   The spad tile is BW-parameterized and gets BW=NOC_BW=64 from the
 #-   testcase, so every beat is a full 64-bit word (no truncation).
 #- Dump formats (gen_mosaic.pm):
-#-   tile_01.dat: acc_scratchpad.dp_ram.mem - one 64-bit word per line.
-#-     NOTE (BW=64 addressing quirk): the spad's NoC port A uses
-#-     mem_addr_a[OFFSET_SZ-1:0] RAW as the 64-bit-word index
-#-     (acc_scratchpad.sv), unlike the pico64 tile's own memory which
-#-     shifts [OFFSET_SZ-1:1] - so a remote word32 offset X lands at
-#-     spad word64 index X (not X/2).
+#-   tile_01.dat: BW=64 acc_scratchpad.gen_wide_ram.dp_ram_be.mem -
+#-     one 64-bit word per line. Both NoC and AXI accesses use the same
+#-     mapping as the pico64 tile: word64 index = word32 offset >> 1.
 #-   tile_00.dat: acc_picorv64.dp_ram_be.mem - one 64-bit word per line
 #-     (data line N = word64 index N-1), possibly with '// 0xADDR'
 #-     header lines, which the position checks skip.
@@ -70,25 +67,25 @@ else
   errors=$((errors+1))
 fi
 
-#- Position check: the first mPut lands at spad word32 0x100, which the
-#- spad's raw-index port A maps to word64 index 256 (data line 257).
-pat_line=$(awk '!/^\/\// {n++; if (n==257) print tolower($1)}' $mem_file)
+#- Position check: the first mPut lands at spad word32 0x100 =
+#- word64 index 128 (data line 129 of the 64-bit-wide spad dump).
+pat_line=$(awk '!/^\/\// {n++; if (n==129) print tolower($1)}' $mem_file)
 if [ "$pat_line" = "cafecacecafecace" ]
 then
-  echo "SUCCESS: first MPUT pattern is at spad word32 0x100 (word64 256)\n"
+  echo "SUCCESS: first MPUT pattern is at spad word32 0x100 (word64 128)\n"
 else
-  echo "FAIL: spad word64 256 (data line 257) holds '$pat_line', not cafecacecafecace\n"
+  echo "FAIL: spad word64 128 (data line 129) holds '$pat_line', not cafecacecafecace\n"
   errors=$((errors+1))
 fi
 
 #- Position check: the first remote STORE lands at spad word32 0x15A
-#- (0x100+90) = word64 index 346 (data line 347).
-pat_line=$(awk '!/^\/\// {n++; if (n==347) print tolower($1)}' $mem_file)
+#- (0x100+90) = word64 index 173 (data line 174).
+pat_line=$(awk '!/^\/\// {n++; if (n==174) print tolower($1)}' $mem_file)
 if [ "$pat_line" = "f00df00df00df00d" ]
 then
-  echo "SUCCESS: first remote STORE pattern is at spad word32 0x15A (word64 346)\n"
+  echo "SUCCESS: first remote STORE pattern is at spad word32 0x15A (word64 173)\n"
 else
-  echo "FAIL: spad word64 346 (data line 347) holds '$pat_line', not f00df00df00df00d\n"
+  echo "FAIL: spad word64 173 (data line 174) holds '$pat_line', not f00df00df00df00d\n"
   errors=$((errors+1))
 fi
 
