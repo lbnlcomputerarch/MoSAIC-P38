@@ -23,5 +23,14 @@ xsim.dir/
 *~
 .DS_Store
 
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Evidence run records are intentional repo content: re-include their logs
+# (the global *.log rule above would otherwise silently drop them from
+# git add of an evidence directory)
+!evidence/**/logs/*.log
+
 # Agent workspace
 .private-journal/
