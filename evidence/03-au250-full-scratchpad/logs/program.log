@@ -1,0 +1,58 @@
+1
+Setting up Vitis 2022.2 environment...
+
+****** Vivado v2022.2.2 (64-bit)
+  **** SW Build 3788238 on Tue Feb 21 19:59:23 MST 2023
+  **** IP Build 3783773 on Tue Feb 21 23:41:56 MST 2023
+    ** Copyright 1986-2023 Xilinx, Inc. All Rights Reserved.
+
+source /home/ffard/mosaic-pico64-au250-acf21c2b179f/evidence/07-fpga-run-20261118T000500Z/scripts/program_au250_once.tcl
+# set bitstream /home/ffard/mosaic-pico64-au250-acf21c2b179f/open-nic-shell-lbnl/build/au250/open_nic_shell/open_nic_shell.runs/impl_1/open_nic_shell.bit
+# if {![file exists $bitstream]} {
+#     error "Bitstream not found: $bitstream"
+# }
+# open_hw_manager
+open_hw_manager: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2132.625 ; gain = 89.961 ; free physical = 147303 ; free virtual = 184306
+# connect_hw_server -allow_non_jtag
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2022.2.2
+  **** Build date : Feb 21 2023 at 20:10:32
+    ** Copyright 1986-2023 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2022.2.2
+  ****** Build date   : Feb 15 2023-21:18:16
+    **** Build number : 2022.2.2.1676524696
+      ** Copyright 2017-2026 Xilinx, Inc. All Rights Reserved.
+
+
+
+# open_hw_target
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/2132038AR00EA
+# current_hw_device [get_hw_devices xcu250_0]
+# refresh_hw_device -update_hw_probes false [lindex [get_hw_devices xcu250_0] 0]
+INFO: [Labtools 27-2302] Device xcu250 (JTAG device index = 0) is programmed with a design that has 1 ILA core(s).
+INFO: [Labtools 27-2302] Device xcu250 (JTAG device index = 0) is programmed with a design that has 1 MIG core(s).
+# set_property PROGRAM.FILE $bitstream [get_hw_devices xcu250_0]
+# program_hw_devices [get_hw_devices xcu250_0]
+INFO: [Labtools 27-3164] End of startup status: HIGH
+program_hw_devices: Time (s): cpu = 00:00:26 ; elapsed = 00:00:26 . Memory (MB): peak = 4278.598 ; gain = 9.004 ; free physical = 145118 ; free virtual = 182161
+# refresh_hw_device [lindex [get_hw_devices xcu250_0] 0]
+INFO: [Labtools 27-1434] Device xcu250 (JTAG device index = 0) is programmed with a design that has no supported debug core(s) in it.
+INFO: [Common 17-206] Exiting Vivado at Tue Nov 17 16:16:42 2026...
+1
+d8:00.0 Network controller: Xilinx Corporation Device 903f
+	Subsystem: Xilinx Corporation Device 0007
+	Flags: fast devsel, IRQ 255, NUMA node 1
+	Memory at fbc00000 (64-bit, non-prefetchable) [size=256K]
+	Memory at fb800000 (64-bit, non-prefetchable) [size=4M]
+	Capabilities: <access denied>
+
