@@ -1,0 +1,89 @@
+resource2=/sys/bus/pci/devices/0000:d8:00.0/resource2 size=4194304
+== pre-state (direct reads)
+PRE tile00   status=0x000000ff coord=0x00000000 pktcnt=0x00000000
+PRE tile01   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+PRE tile10   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+PRE tile11   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+rvSetStatus(tile00, 0x00) -> 0x00
+loaded 84 word32 into tile00
+program readback verified (84 words) -> readback/tile00_program_readback.hex
+coord tile00   <- 0x00, readback 0x00
+coord tile01   <- 0x08, readback 0x08
+coord tile10   <- 0x01, readback 0x01
+coord tile11   <- 0x09, readback 0x09
+rvSetStatus(tile00, 0x01) -> 0x01
+== post-run packet counters
+PKTCNT tile00=0x00000040 tile01=0x00000030
+== region tile01_mput (tile 0x100100, word32 0x100..0x11f)
+  [ 0] got 0xcafecacecafecace want 0xcafecacecafecace PASS
+  [ 1] got 0xcafecacecafecacf want 0xcafecacecafecacf PASS
+  [ 2] got 0xcafecacecafecad0 want 0xcafecacecafecad0 PASS
+  [ 3] got 0xcafecacecafecad1 want 0xcafecacecafecad1 PASS
+  [ 4] got 0xcafecacecafecad2 want 0xcafecacecafecad2 PASS
+  [ 5] got 0xcafecacecafecad3 want 0xcafecacecafecad3 PASS
+  [ 6] got 0xcafecacecafecad4 want 0xcafecacecafecad4 PASS
+  [ 7] got 0xcafecacecafecad5 want 0xcafecacecafecad5 PASS
+  [ 8] got 0xcafecacecafecad6 want 0xcafecacecafecad6 PASS
+  [ 9] got 0xcafecacecafecad7 want 0xcafecacecafecad7 PASS
+  [10] got 0xcafecacecafecad8 want 0xcafecacecafecad8 PASS
+  [11] got 0xcafecacecafecad9 want 0xcafecacecafecad9 PASS
+  [12] got 0xcafecacecafecada want 0xcafecacecafecada PASS
+  [13] got 0xcafecacecafecadb want 0xcafecacecafecadb PASS
+  [14] got 0xcafecacecafecadc want 0xcafecacecafecadc PASS
+  [15] got 0xcafecacecafecadd want 0xcafecacecafecadd PASS
+region tile01_mput: PASS -> readback/tile01_mput.hex
+== region tile01_store (tile 0x100100, word32 0x15a..0x179)
+  [ 0] got 0xf00df00df00df00d want 0xf00df00df00df00d PASS
+  [ 1] got 0xf00df00df00df00e want 0xf00df00df00df00e PASS
+  [ 2] got 0xf00df00df00df00f want 0xf00df00df00df00f PASS
+  [ 3] got 0xf00df00df00df010 want 0xf00df00df00df010 PASS
+  [ 4] got 0xf00df00df00df011 want 0xf00df00df00df011 PASS
+  [ 5] got 0xf00df00df00df012 want 0xf00df00df00df012 PASS
+  [ 6] got 0xf00df00df00df013 want 0xf00df00df00df013 PASS
+  [ 7] got 0xf00df00df00df014 want 0xf00df00df00df014 PASS
+  [ 8] got 0xf00df00df00df015 want 0xf00df00df00df015 PASS
+  [ 9] got 0xf00df00df00df016 want 0xf00df00df00df016 PASS
+  [10] got 0xf00df00df00df017 want 0xf00df00df00df017 PASS
+  [11] got 0xf00df00df00df018 want 0xf00df00df00df018 PASS
+  [12] got 0xf00df00df00df019 want 0xf00df00df00df019 PASS
+  [13] got 0xf00df00df00df01a want 0xf00df00df00df01a PASS
+  [14] got 0xf00df00df00df01b want 0xf00df00df00df01b PASS
+  [15] got 0xf00df00df00df01c want 0xf00df00df00df01c PASS
+region tile01_store: PASS -> readback/tile01_store.hex
+== region tile00_mget (tile 0x100000, word32 0x180..0x19f)
+  [ 0] got 0xcafecacecafecace want 0xcafecacecafecace PASS
+  [ 1] got 0xcafecacecafecacf want 0xcafecacecafecacf PASS
+  [ 2] got 0xcafecacecafecad0 want 0xcafecacecafecad0 PASS
+  [ 3] got 0xcafecacecafecad1 want 0xcafecacecafecad1 PASS
+  [ 4] got 0xcafecacecafecad2 want 0xcafecacecafecad2 PASS
+  [ 5] got 0xcafecacecafecad3 want 0xcafecacecafecad3 PASS
+  [ 6] got 0xcafecacecafecad4 want 0xcafecacecafecad4 PASS
+  [ 7] got 0xcafecacecafecad5 want 0xcafecacecafecad5 PASS
+  [ 8] got 0xcafecacecafecad6 want 0xcafecacecafecad6 PASS
+  [ 9] got 0xcafecacecafecad7 want 0xcafecacecafecad7 PASS
+  [10] got 0xcafecacecafecad8 want 0xcafecacecafecad8 PASS
+  [11] got 0xcafecacecafecad9 want 0xcafecacecafecad9 PASS
+  [12] got 0xcafecacecafecada want 0xcafecacecafecada PASS
+  [13] got 0xcafecacecafecadb want 0xcafecacecafecadb PASS
+  [14] got 0xcafecacecafecadc want 0xcafecacecafecadc PASS
+  [15] got 0xcafecacecafecadd want 0xcafecacecafecadd PASS
+region tile00_mget: PASS -> readback/tile00_mget.hex
+== region tile00_load (tile 0x100000, word32 0x1da..0x1f9)
+  [ 0] got 0xf00df00df00df00d want 0xf00df00df00df00d PASS
+  [ 1] got 0xf00df00df00df00e want 0xf00df00df00df00e PASS
+  [ 2] got 0xf00df00df00df00f want 0xf00df00df00df00f PASS
+  [ 3] got 0xf00df00df00df010 want 0xf00df00df00df010 PASS
+  [ 4] got 0xf00df00df00df011 want 0xf00df00df00df011 PASS
+  [ 5] got 0xf00df00df00df012 want 0xf00df00df00df012 PASS
+  [ 6] got 0xf00df00df00df013 want 0xf00df00df00df013 PASS
+  [ 7] got 0xf00df00df00df014 want 0xf00df00df00df014 PASS
+  [ 8] got 0xf00df00df00df015 want 0xf00df00df00df015 PASS
+  [ 9] got 0xf00df00df00df016 want 0xf00df00df00df016 PASS
+  [10] got 0xf00df00df00df017 want 0xf00df00df00df017 PASS
+  [11] got 0xf00df00df00df018 want 0xf00df00df00df018 PASS
+  [12] got 0xf00df00df00df019 want 0xf00df00df00df019 PASS
+  [13] got 0xf00df00df00df01a want 0xf00df00df00df01a PASS
+  [14] got 0xf00df00df00df01b want 0xf00df00df00df01b PASS
+  [15] got 0xf00df00df00df01c want 0xf00df00df00df01c PASS
+region tile00_load: PASS -> readback/tile00_load.hex
+RUNNER_RESULT: PASS values=64/64 regions=4/4

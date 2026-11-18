@@ -1,0 +1,66 @@
+
+****** Vivado v2022.2.2 (64-bit)
+  **** SW Build 3788238 on Tue Feb 21 19:59:23 MST 2023
+  **** IP Build 3783773 on Tue Feb 21 23:41:56 MST 2023
+    ** Copyright 1986-2023 Xilinx, Inc. All Rights Reserved.
+
+source scripts/jtag_preflight.tcl
+# open_hw_manager
+open_hw_manager: Time (s): cpu = 00:00:05 ; elapsed = 00:00:07 . Memory (MB): peak = 2131.855 ; gain = 90.930 ; free physical = 147331 ; free virtual = 184310
+# connect_hw_server -allow_non_jtag
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2022.2.2
+  **** Build date : Feb 21 2023 at 20:10:32
+    ** Copyright 1986-2023 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2022.2.2
+  ****** Build date   : Feb 15 2023-21:18:16
+    **** Build number : 2022.2.2.1676524696
+      ** Copyright 2017-2026 Xilinx, Inc. All Rights Reserved.
+
+
+
+# foreach t [get_hw_targets] {
+#     puts "HW_TARGET: $t"
+# }
+HW_TARGET: localhost:3121/xilinx_tcf/Xilinx/2132038AR00EA
+# open_hw_target
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/2132038AR00EA
+# foreach d [get_hw_devices] {
+#     puts "HW_DEVICE: $d"
+# }
+HW_DEVICE: xcu250_0
+# if {[llength [get_hw_devices -quiet xcu250_0]] == 0} {
+#     puts "PREFLIGHT_FAIL: xcu250_0 not visible"
+#     close_hw_target
+#     disconnect_hw_server
+#     close_hw_manager
+#     exit 1
+# }
+# set dev [lindex [get_hw_devices xcu250_0] 0]
+# foreach p {PART FAMILY SPEED} {
+#     if {[catch {get_property $p $dev} v]} {
+#         puts "PROP $p: <unavailable>"
+#     } else {
+#         puts "PROP $p: $v"
+#     }
+# }
+PROP PART: xcu250
+PROP FAMILY: <unavailable>
+PROP SPEED: <unavailable>
+# puts "PREFLIGHT_OK: xcu250_0 visible"
+PREFLIGHT_OK: xcu250_0 visible
+# close_hw_target
+INFO: [Labtoolstcl 44-464] Closing hw_target localhost:3121/xilinx_tcf/Xilinx/2132038AR00EA
+# disconnect_hw_server
+# close_hw_manager
+INFO: [Common 17-206] Exiting Vivado at Tue Nov 17 16:14:17 2026...

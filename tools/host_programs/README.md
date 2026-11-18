@@ -2,7 +2,9 @@
 
 Host-side (x86) utilities for programming and verifying MoSAIC tiles on FPGA
 systems.  Complementary to the on-core firmware in `tools/picorv_c/` and the
-simulation checkers in `tools/checkers/`.
+simulation checkers in `tools/checkers/`.  Two validated runners cover the
+pico64 + scratchpad bring-up flow: `spad64_runner` (C, self-contained mmap)
+and `spad64_run` (Python, built on the RegIO tool).
 
 ## spad64_runner
 
@@ -65,3 +67,44 @@ AU250 (xcu250), bitstream built from testcase `mosaic_2x2_pico64_vivado`,
 
 Generalizing the hardcoded tile/window addresses (other tile maps, window
 decodes, or BAR layouts) is future work.
+
+## spad64_run
+
+Same load/run/verify flow as `spad64_runner`, implemented in Python on top of
+the [RegIO](https://socks.lbl.gov/p38/mosaic_regIO/-/tree/v1.1?ref_type=tags)-based MoSAIC tool (checkout tagged
+`v1.1`) instead of raw mmap code.  It uses RegIO exactly as shipped — the
+BAR2 register map (`regBlock_top_ir.yaml`), the register accessors, the
+indirect writes, and `rvSetStatus` all come from RegIO — and carries exactly
+one local addition: the corrected double-`OP_READ` indirect read described in
+"Indirect-read handshake" above.  RegIO v1.1's
+`custom_functions_regIO.indirect_read_cb` has the single-command flaw (and
+`rvLoadFirmware_cb` never verifies readback), so its read path must not be
+used for verified readback without this fix; contributing it upstream is
+future work.
+
+```
+sudo python3 spad64_run.py <outdir> [--hex <pico64_scratchpad32.hex>] [--device <pci-addr>]
+```
+
+Deploy the script into a `mosaic_regIO` checkout (untracked addition, tag
+pristine) and run it from that directory so `RegIO.py`,
+`custom_functions_regIO.py`, and `regBlock_top_ir.yaml` resolve; the default
+`--hex` is `../MoSAIC-P38/tools/picorv_c/c64/pico64_scratchpad32.hex` for the
+standard workspace layout.  Requires Python 3.8+ with PyYAML and numpy
+(RegIO dependencies) and sudo for the root-only `resource2` map.  Same
+fail-stop behavior, raw readback files, and authoritative `RUNNER_RESULT:`
+line as `spad64_runner`.
+
+### Validation
+
+AU250 (xcu250), freshly programmed accepted bitstream, 2026-11-18:
+`RUNNER_RESULT: PASS values=64/64 regions=4/4`, program readback 84/84
+words, PKTCNT `tile00=0x40 tile01=0x30` — and all four raw readback files
+byte-identical to `evidence/03-au250-full-scratchpad/`, i.e. two independent
+host stacks (C hardcoded offsets, Python YAML-driven) reproducing the same
+silicon data.  Run record: `evidence/04-au250-regio-run/` (includes the
+offline mock-validation test that reproduces the stale-read semantics and
+proves the corrected read, 5/5, before the script ever touched hardware).
+
+Generalizing the hardcoded tile/window addresses in both runners (other tile
+maps, window decodes, or BAR layouts) is future work.

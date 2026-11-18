@@ -1,0 +1,9 @@
+spad64-runner: FAIL: program readback word32 0x000: read 0xcafecace, want 0x00004117
+resource2=/sys/bus/pci/devices/0000:d8:00.0/resource2 size=4194304
+== pre-state (direct reads)
+PRE tile00   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+PRE tile01   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+PRE tile10   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+PRE tile11   status=0x00000000 coord=0x00000000 pktcnt=0x00000000
+rvSetStatus(tile00, 0x00) -> 0x00
+loaded 84 word32 into tile00
