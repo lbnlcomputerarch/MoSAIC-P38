@@ -22,7 +22,7 @@
 # *************************************************************************
 
 #- Set the profile
-source /opt/source-vitis-2022.2.sh
+source /tools/source-vitis.sh 2022.2
 
 #- Clean up
 rm -rf mosaic*

@@ -1,0 +1,40 @@
+--- scripts/spad64_runner.attempt1.c	2026-11-17 16:24:21.799693295 -0800
++++ scripts/spad64_runner.c	2026-11-17 16:24:22.151683434 -0800
+@@ -26,6 +26,18 @@
+  * 3 status, 4 riscv.  Status reads 0xff after an accepted write/read
+  * command; after a status command it mirrors rv_control.
+  *
++ * Read handshake (attempt-1 hardware finding): the memory-port address
++ * (RV_AXIInD addr_inst) and the read-data capture (dout_inst) both latch
++ * on the command-write pulse, one cycle AFTER Command_Op latches, so a
++ * single OP_READ returns mem[previous command's address] through the
++ * half-select mux of the stale address (observed: word32 0x000 read back
++ * 0xCAFECACE = last firmware word 0x053's upper half; set_system.c's
++ * indirect_read has the same sequence but never verifies data).  Every
++ * indirect read therefore issues OP_READ twice: the first primes the
++ * address snapshot, the second captures mem[addr].  Writes need no
++ * change: address and data snapshot together, so no cross-command
++ * stray writes occur (verified in RV_AXIInD.v/acc_picorv64.sv).
++ *
+  * Expected regions (word32 addresses; 64-bit value i occupies the low
+  * half at base+2i and the high half at base+2i+1):
+  *   spad 0x100: 16 x (0xCAFECACECAFECACE + i)   mPut writes
+@@ -110,10 +122,18 @@
+ {
+ 	uint32_t status;
+ 
++	/* Two OP_READ commands per word (see header note): the first
++	 * primes the address snapshot, the second captures mem[waddr].
++	 * A single command returns the previous command's data. */
+ 	wr32(tile + REG_ADDR, waddr);
+ 	wr32(tile + REG_CMND, OP_READ);
+ 	status = rd32(tile + REG_STAT);
+ 	if (status != STATUS_OK)
++		die("indirect read prime word32 0x%03" PRIx32 " tile 0x%05"
++		    PRIx32 ": status 0x%08" PRIx32, waddr, tile, status);
++	wr32(tile + REG_CMND, OP_READ);
++	status = rd32(tile + REG_STAT);
++	if (status != STATUS_OK)
+ 		die("indirect read word32 0x%03" PRIx32 " tile 0x%05" PRIx32
+ 		    ": status 0x%08" PRIx32, waddr, tile, status);
+ 	return rd32(tile + REG_DATA);

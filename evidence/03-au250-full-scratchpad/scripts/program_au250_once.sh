@@ -1,0 +1,49 @@
+#! /bin/bash
+#
+# One-off corrected copy of for_programing_fpga.sh for the authorized
+# 2026-11-18 AU250 full-scratchpad FPGA run
+# (evidence: 07-fpga-run-20261118T000500Z).
+# Corrections vs the original (see original-vs-run-program.diff):
+#   - /opt/source-vitis-2022.2.sh -> /tools/source-vitis.sh 2022.2
+#   - program_card.tcl -> this run's corrected Tcl copy (absolute path)
+#   - the 0000:d8:00.1 removal is guarded: the card may expose function 0 only
+#   - stop on any error (-Eeo pipefail; -u is deliberately NOT set because
+#     /tools/source-vitis.sh is not nounset-clean: it reads unset
+#     XILINX_VITIS and aborts under set -u)
+# The original file in open-nic-shell-lbnl/ is unchanged.
+
+set -Eeo pipefail
+
+#Before programming
+#Two different ethernet ports in the alveo card. each line BDF address for device funtion
+
+echo 1 | sudo tee /sys/bus/pci/devices/0000:d7:00.0/0000:d8:00.0/remove
+if [[ -e /sys/bus/pci/devices/0000:d7:00.0/0000:d8:00.1 ]]; then
+  echo 1 | sudo tee /sys/bus/pci/devices/0000:d7:00.0/0000:d8:00.1/remove
+fi
+
+#For programming
+#This is the path that maps to the resource (PCI port) in linux. Now I am removing the resource
+#(cd ~stac/program_xilinx/; ./program_card.sh /home/lg4er/Workspace/p38/chris_2x2_sept15_2022/for_patricia/for_patricia_tutorial_2x2/open-nic-shell/open_nic_shell_2x2_riscv_tiles.bit)
+
+source /tools/source-vitis.sh 2022.2
+
+vivado -mode batch -source /home/ffard/mosaic-pico64-au250-acf21c2b179f/evidence/07-fpga-run-20261118T000500Z/scripts/program_au250_once.tcl
+
+#After programming
+echo 1 | sudo tee /sys/bus/pci/devices/0000:d7:00.0/rescan
+
+#Telling Wanda to re-scan all the devices in the PCI bus. Look for that resource, find it in the bus and enable it.
+
+sudo setpci -s d8:00.0 COMMAND=0x02
+# (maybe only for peter)
+
+#To check if we can see it
+lspci -d 10ee: -v
+
+#10ee is the identifier for the vendor Id for the PCIE device
+#when copying the bit file also take the ltx file
+#open-nic-shell.bit
+#open-nic-shell.ltx
+#qdma -> packet interface
+#PCIE
