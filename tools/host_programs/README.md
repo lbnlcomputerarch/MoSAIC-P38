@@ -71,7 +71,7 @@ decodes, or BAR layouts) is future work.
 ## spad64_run
 
 Same load/run/verify flow as `spad64_runner`, implemented in Python on top of
-the [RegIO](https://github.com/esnet/regio)-based MoSAIC tool (checkout tagged
+the [RegIO](https://socks.lbl.gov/p38/mosaic_regIO/-/tree/v1.1?ref_type=tags)-based MoSAIC tool (checkout tagged
 `v1.1`) instead of raw mmap code.  It uses RegIO exactly as shipped — the
 BAR2 register map (`regBlock_top_ir.yaml`), the register accessors, the
 indirect writes, and `rvSetStatus` all come from RegIO — and carries exactly
